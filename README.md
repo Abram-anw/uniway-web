@@ -1,8 +1,15 @@
 # UNIWAY Web (HTML + CSS + JS فقط)
-افتح index.html في المتصفح مباشرة (أو Live Server). مفيش build ولا npm.
 
-- css/style.css  → الـ Theme (ألوان UNIWAY، Cairo، RTL، Responsive)
-- js/ui.js       → مكتبة المكونات (Table/Tabs/Modal/Confirm/Dropdown/FileUpload/Badge + Skeleton/Empty/Error/Success)
-- js/app.js      → الشيل (Sidebar + Topbar) + الراوتر + حماية المسارات حسب الدور
-- js/pages.js    → صفحات الدكتور (SCRUM-93 → 97)
-- js/data.js     → بيانات تجريبية، استبدلها بالـ API
+افتح `index.html` في المتصفح مباشرة أو استخدم Live Server. لا يحتاج المشروع إلى build أو npm للتشغيل الأساسي.
+
+## هيكل المشروع
+
+* `css/style.css` — تصميم UNIWAY، الألوان، خط Cairo، دعم RTL والتصميم المتجاوب.
+* `js/ui.js` — مكونات الواجهة المشتركة مثل الجداول والتبويبات والنوافذ المنبثقة والتنبيهات.
+* `js/app.js` — الشريط الجانبي والشريط العلوي والتنقل وحماية المسارات حسب الدور.
+* `js/pages.js` — صفحات التطبيق، بما فيها صفحات الدكتور (SCRUM-93 إلى SCRUM-97).
+* `js/data.js` — البيانات التجريبية، ويمكن استبدالها لاحقًا ببيانات API.
+
+## GitHub
+
+https://github.com/Abram-anw/uniway-wep
