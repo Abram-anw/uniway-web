@@ -1,19 +1,19 @@
 /* Design tokens */
 :root {
-  --blue: #1F5C8B;
+  --blue: #1f5c8b;
   --blue-d: #174a72;
-  --blue-l: #EBF4FF;
-  --ok: #16A34A;
-  --ok-l: #DCFCE7;
-  --warn: #D97706;
-  --warn-l: #FEF3C7;
-  --bad: #DC2626;
-  --bad-l: #FEE2E2;
-  --bg: #F4F7FA;
-  --line: #DDE3EC;
-  --tx: #0D1B2A;
-  --sub: #4A6278;
-  --mut: #8FA3B8;
+  --blue-l: #ebf4ff;
+  --ok: #16a34a;
+  --ok-l: #dcfce7;
+  --warn: #d97706;
+  --warn-l: #fef3c7;
+  --bad: #dc2626;
+  --bad-l: #fee2e2;
+  --bg: #f4f7fa;
+  --line: #dde3ec;
+  --tx: #0d1b2a;
+  --sub: #4a6278;
+  --mut: #8fa3b8;
 }
 
 /* Base styles */
@@ -153,6 +153,212 @@ textarea {
   background: var(--blue-l);
   color: var(--blue);
   font-weight: 800;
+}
+
+.profile-trigger {
+  text-decoration: none;
+}
+
+.profile-page {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding-bottom: 24px;
+}
+
+.profile-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 24px 38px;
+  border-radius: 18px 18px 44px 44px;
+  background: var(--blue);
+  color: #fff;
+  text-align: center;
+}
+
+.profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  margin-bottom: 14px;
+  border: 3px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.profile-hero h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.profile-hero > p {
+  margin: 4px 0 18px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 14px;
+}
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  max-width: 520px;
+  padding: 14px 8px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.profile-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-stats b {
+  font-size: 16px;
+}
+
+.profile-stats span {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+}
+
+.profile-report,
+.profile-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--tx);
+  text-align: right;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.profile-report {
+  margin: 16px 0;
+  border-color: #c9def3;
+  border-radius: 16px;
+  background: var(--blue-l);
+}
+
+.profile-actions {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.profile-action + .profile-action {
+  border-top: 0;
+}
+
+.profile-action:hover,
+.profile-report:hover {
+  background: #f8fbff;
+}
+
+.profile-action-icon {
+  display: grid;
+  flex: 0 0 42px;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.profile-action-icon.blue {
+  background: var(--blue);
+  color: #fff;
+}
+
+.profile-action-icon.amber {
+  background: var(--warn-l);
+  color: var(--warn);
+}
+
+.profile-action-icon.green {
+  background: var(--ok-l);
+  color: var(--ok);
+}
+
+.profile-action-icon.purple {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+.profile-action-icon.gray {
+  background: #eef2f6;
+  color: var(--sub);
+}
+
+.profile-action-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-action-copy b {
+  font-size: 14px;
+}
+
+.profile-action-copy small {
+  color: var(--mut);
+  font-size: 12px;
+}
+
+.profile-chevron {
+  display: grid;
+  place-items: center;
+  color: var(--mut);
+  transform: rotate(90deg);
+}
+
+.profile-logout {
+  width: 100%;
+  margin-top: 14px;
+  padding: 13px;
+  border: 1px solid var(--bad-l);
+  border-radius: 14px;
+  background: var(--bad-l);
+  color: var(--bad);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.profile-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+}
+
+.profile-rating {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.profile-rating button {
+  padding: 4px;
+  border: 0;
+  background: none;
+  color: var(--mut);
+  cursor: pointer;
+}
+
+.profile-rating button.selected {
+  color: var(--warn);
 }
 
 .iconbtn {
@@ -800,10 +1006,12 @@ tr.click:hover td {
     width: 248px;
     transform: translateX(100%);
     transition: transform 0.2s;
+    visibility: hidden;
   }
 
   .side.open {
     transform: none;
+    visibility: visible;
   }
 
   .menu {
@@ -833,6 +1041,18 @@ tr.click:hover td {
 }
 
 @media (max-width: 560px) {
+  body {
+    overflow-x: clip;
+  }
+
+  .top .search {
+    display: none;
+  }
+
+  .top #role {
+    width: 110px !important;
+  }
+
   .g4,
   .g3,
   .g2 {

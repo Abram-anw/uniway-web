@@ -23,6 +23,10 @@ const stateBox = (tone, ic, title, body = '', action = '') => `<div class="state
 const empty = (title, body, ic = 'file', action) => stateBox('gray', ic, title, body, action);
 const errorBox = (title = 'حدث خطأ، حاول مرة أخرى', body, action) => stateBox('red', 'alert', title, body, action);
 const success = (title, body, action) => stateBox('green', 'check', title, body, action);
+const placeholderPage = title => view => {
+  view.innerHTML = pageHead(title) +
+    `<div class="card">${empty('الصفحة دي هتتبني في مهمتها', 'الشيل والصلاحيات جاهزين، وتقدر تبدأ عليهم من غير ما تكتب مكونات جديدة.')}</div>`;
+};
 
 function tabs(el, list, active, onChange) {
   el.innerHTML = `<div class="tabs" role="tablist">${list.map(t => `<button role="tab" aria-selected="${t.id === active}" class="tab ${t.id === active ? 'on' : ''}" data-t="${t.id}">${t.label}</button>`).join('')}</div>`;
