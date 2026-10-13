@@ -505,6 +505,31 @@ textarea {
   white-space: nowrap;
 }
 
+.badge.blue {
+  background: var(--blue-l);
+  color: var(--blue);
+}
+
+.badge.green {
+  background: var(--ok-l);
+  color: var(--ok);
+}
+
+.badge.amber {
+  background: var(--warn-l);
+  color: var(--warn);
+}
+
+.badge.red {
+  background: var(--bad-l);
+  color: var(--bad);
+}
+
+.badge.gray {
+  background: var(--bg);
+  color: var(--sub);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
