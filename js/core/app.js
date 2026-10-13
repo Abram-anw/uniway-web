@@ -1,5 +1,6 @@
 // ===== الشيل + الراوتر + حماية المسارات (SCRUM-77) =====
 const ROLE_NAME = { doctor: "دكتور", affairs: "شؤون الطلاب", admin: "أدمن" };
+const PROFILE_LABEL = { doctor: "س", affairs: "سارة", admin: "أ" };
 const HOME = { doctor: "#/doctor", affairs: "#/affairs", admin: "#/admin" };
 const NAV = {
   doctor: [
@@ -91,7 +92,15 @@ function route() {
     )
     .join("");
   $("#dot").style.display = role === "doctor" && unreadTotal() ? "" : "none";
-  $("#profile-link").style.display = role === "doctor" ? "grid" : "none";
+  const profileLink = $("#profile-link");
+  profileLink.textContent = PROFILE_LABEL[role] || "مستخدم";
+  profileLink.href = role === "doctor" ? "#/doctor/profile" : "#/affairs";
+  profileLink.title = PROFILE_LABEL[role] || "مستخدم";
+  profileLink.style.display = role === "doctor" || role === "affairs" ? "grid" : "none";
+  profileLink.style.width = role === "affairs" ? "auto" : "36px";
+  profileLink.style.minWidth = role === "affairs" ? "72px" : "36px";
+  profileLink.style.padding = role === "affairs" ? "0 12px" : "0";
+  profileLink.style.borderRadius = role === "affairs" ? "999px" : "50%";
   const view = $("#view");
   view.innerHTML = "";
   (hit || ROUTES[0]).slice(2)[0](
