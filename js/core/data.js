@@ -131,13 +131,11 @@ const threads = [
 ];
 
 const affairsSections = [
-  { key: "admission", label: "القبول", icon: "users", count: 24 },
+  { key: "admission", label: "طلبات الالتحاق", icon: "users", count: 24 },
   { key: "scholarship", label: "المنح", icon: "star", count: 12 },
-  { key: "advising", label: "الإرشاد", icon: "chat", count: 18 },
   { key: "registration", label: "التسجيل", icon: "book", count: 15 },
-  { key: "transcripts", label: "السجل الأكاديمي", icon: "file", count: 10 },
-  { key: "housing", label: "السكن", icon: "home", count: 7 },
-  { key: "documents", label: "المستندات", icon: "clipboard", count: 21 },
+  { key: "appeal", label: "تظلمات", icon: "star", count: 8 },
+  { key: "military-education", label: "التربية العسكرية", icon: "shield", count: 8 },
   { key: "support", label: "الدعم", icon: "alert", count: 9 },
 ];
 

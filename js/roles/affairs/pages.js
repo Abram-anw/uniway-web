@@ -1091,6 +1091,7 @@ const affairsDashboard = (view) => {
       { title: "رقم الطلب", render: (r) => `<b>${r.id}</b>` },
       { title: "الطالب", render: (r) => r.studentName },
       { title: "القسم", render: (r) => r.section },
+      { title: "نوع الطلب", render: (r) => r.category },
       { title: "الحالة", render: (r) => badge(requestStatusMeta[r.status].label, requestStatusMeta[r.status].tone) },
       { title: "تاريخ الإرسال", render: (r) => r.submittedAt },
     ],

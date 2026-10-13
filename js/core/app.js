@@ -12,12 +12,11 @@ const NAV = {
   affairs: [
     ["#/affairs", "لوحة شؤون الطلاب", "home"],
     ["#/affairs/requests", "الطلبات", "clipboard"],
-    ["#/affairs/admissions", "القبول", "users"],
-    ["#/affairs/grade-appeals", "الاستئنافات", "star"],
+    ["#/affairs/admissions", "طلبات الالتحاق", "users"],
+    ["#/affairs/grade-appeals", "تظلمات", "star"],
     ["#/affairs/students", "البحث عن طالب", "search"],
-    ["#/affairs/documents", "مستندات الطلاب", "file"],
     ["#/affairs/conversations", "محادثات الطلاب", "chat"],
-    ["#/affairs/military-education", "نتائج التعليم العسكري", "file"],
+    ["#/affairs/military-education", "التربية العسكرية", "file"],
   ],
   admin: [
     ["#/admin", "لوحة الأدمن", "home"],

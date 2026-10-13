@@ -9,7 +9,7 @@ const ICONS = {
   file: 'M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z M13 2v7h7', check: 'M20 6L9 17l-5-5',
   alert: 'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z M12 9v4 M12 17h.01', chevD: 'M6 9l6 6 6-6',
   send: 'M22 2L11 13 M22 2l-7 20-4-9-9-4 20-7z', clip: 'M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48',
-  grad: 'M22 10v6M2 10l10-5 10 5-10 5z M6 12v5c3 3 9 3 12 0v-5', menu: 'M3 6h18 M3 12h18 M3 18h18',
+  grad: 'M22 10v6M2 10l10-5 10 5-10 5z M6 12v5c3 3 9 3 12 0v-5', menu: 'M3 6h18 M3 12h18 M3 18h18', shield: 'M12 2l7 3v6c0 5-3.5 8.8-7 11-3.5-2.2-7-6-7-11V5l7-3z M12 7v6 M12 18h.01',
   clipboard: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 5a2 2 0 012-2h2a2 2 0 012 2 M9 5a2 2 0 002 2h2a2 2 0 002-2', mega: 'M3 11v2a1 1 0 001 1h3l5 4V6L7 10H4a1 1 0 00-1 1z M16 8a5 5 0 010 8',
 };
 const icon = (n, s = 18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="${ICONS[n]}"/></svg>`;
