@@ -1,6 +1,13 @@
 // ===== مكتبة المكونات (SCRUM-77) =====
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// القالب أصبح جزءًا من صفحة HTML نفسها؛ الدالة فقط تحقن الأيقونات (data-icon) في الصفحة.
+const useTemplate = (view) => {
+  view.querySelectorAll("[data-icon]").forEach((el) => {
+    el.innerHTML = icon(el.dataset.icon);
+  });
+  return view;
+};
 const ICONS = {
   home: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10', book: 'M4 19.5A2.5 2.5 0 016.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z',
   users: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75', chat: 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z',
@@ -121,3 +128,12 @@ function createUpload(el, o) {
 // يلغي أي تايمر قديم لو المستخدم غيّر الصفحة
 let routeToken = 0;
 const live = fn => { const t = routeToken; return (...a) => t === routeToken && fn(...a); };
+
+// ===== أدوات الصفحات المنفصلة (بديل الراوتر) =====
+// الانتقال لصفحة أخرى (كل شاشة الآن ملف HTML مستقل)
+const go = (url) => {
+  location.href = url;
+};
+// بارامترات الصفحة من الرابط: ?id=... أو ?course=...
+const pageQuery = () => Object.fromEntries(new URLSearchParams(location.search));
+const unreadTotal = () => threads.reduce((s, t) => s + t.unread, 0);

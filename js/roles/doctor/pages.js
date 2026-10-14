@@ -3,6 +3,12 @@ const courseCols = [
   { title: "الكود", render: (c) => `<b>${c.code}</b>` },
   { title: "الاسم", render: (c) => c.name },
   { title: "عدد الطلاب", render: (c) => c.students },
+  ...studyPrograms.map((program) => ({
+    title: program,
+    render: (course) =>
+      courseProgramCounts(course.code).find((item) => item.program === program)
+        .count,
+  })),
   { title: "الساعات", render: (c) => c.hours },
   { title: "السنة الدراسية", render: (c) => c.year },
 ];
@@ -17,48 +23,32 @@ const lecRows = (list) =>
     .join("");
 const courseOptions = () =>
   courses.map((c) => ({ value: c.code, label: courseLabel(c) }));
-const unreadTotal = () => threads.reduce((s, t) => s + t.unread, 0);
 
 // ---------- SCRUM-93: لوحة الدكتور ----------
 function dashboard(view) {
-  view.innerHTML =
-    pageHead("لوحة الدكتور", "مقرراتك وطلابك في هذا الفصل") + skeleton(2, 90);
-  setTimeout(
-    live(() => {
-      const links = [
-        ["المقررات", "#/doctor/courses", "book"],
-        ["رفع الدرجات", "#/doctor/grades", "star"],
-        ["المحاضرات", "#/doctor/lectures", "upload"],
-        ["المحادثات", "#/doctor/chats", "chat"],
-      ];
-      view.innerHTML =
-        pageHead("لوحة الدكتور", "مقرراتك وطلابك في هذا الفصل") +
-        `<div class="grid g4" style="margin-bottom:16px">${stat("عدد المقررات", courses.length, "book", "blue")}${stat(
-          "عدد الطلاب",
-          courses.reduce((s, c) => s + c.students, 0),
-          "users",
-          "green",
-        )}${stat("درجات تحتاج مراجعة", courses.filter((c) => !c.graded).length, "alert", "amber")}${stat("رسائل جديدة", unreadTotal(), "chat", "red")}</div>
-      <div class="grid" style="margin-bottom:16px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">${links.map(([l, h, i]) => `<a href="${h}" class="card link"><span class="ico blue" style="width:34px;height:34px">${icon(i)}</span>${l}</a>`).join("")}</div>
-      <div class="card"><h3>مقرراتك هذا الفصل</h3><div id="t"></div></div>`;
-      createTable($("#t", view), {
-        cols: courseCols,
-        rows: courses,
-        onRow: (c) => go(`#/doctor/courses/${c.code}`),
-      });
-    }),
-    600,
-  );
+  // هيكل الصفحة (العنوان والكروت) موجود في doctor/dashboard.html؛ هنا بنملا الأرقام والجدول فقط
+  const statValues = {
+    courses: courses.length,
+    students: courses.reduce((sum, course) => sum + course.students, 0),
+    grades: courses.filter((course) => !course.graded).length,
+    messages: unreadTotal(),
+  };
+  Object.entries(statValues).forEach(([key, value]) => {
+    $(`[data-stat="${key}"]`, view).textContent = value;
+  });
+  createTable($("[data-course-table]", view), {
+    cols: courseCols,
+    rows: courses,
+    onRow: (c) => go(`course-detail.html?code=${c.code}`),
+  });
 }
 
 function coursesPage(view) {
-  view.innerHTML =
-    pageHead("مقرراتي", "المقررات المسندة إليك فقط") +
-    '<div class="card" id="t"></div>';
-  createTable($("#t", view), {
+  useTemplate(view, "doctor-courses-template");
+  createTable($("[data-course-table]", view), {
     cols: courseCols,
     rows: courses,
-    onRow: (c) => go(`#/doctor/courses/${c.code}`),
+    onRow: (c) => go(`course-detail.html?code=${c.code}`),
     search: {
       placeholder: "ابحث بالكود أو الاسم...",
       test: (c, q) =>
@@ -68,10 +58,60 @@ function coursesPage(view) {
   });
 }
 
+function courseCatalogPage(view) {
+  function render() {
+    view.innerHTML =
+      pageHead(
+        "إضافة مقرر",
+        "اختر مقررًا من كتالوج المقررات لإضافته إلى مقرراتك",
+        '<a class="btn ghost" href="courses.html">العودة لمقرراتي</a>',
+      ) +
+      `<div class="course-catalog-grid">${courseCatalog
+        .map((course) => {
+          const added = courses.some(
+            (assigned) => assigned.code === course.code,
+          );
+          return `<article class="card course-catalog-card">
+            <div class="course-catalog-heading">
+              <span class="badge">${course.code}</span>
+              ${added ? badge("مضاف لمقرراتك", "green") : ""}
+            </div>
+            <h2>${esc(course.name)}</h2>
+            <p>${course.year} · ${course.hours} ساعات · ${course.students} طالب</p>
+            ${
+              added
+                ? `<a class="btn outline" href="course-detail.html?code=${course.code}">عرض المقرر</a>`
+                : `<button class="btn primary" type="button" data-add-course="${course.code}">إضافة إلى مقرراتي</button>`
+            }
+          </article>`;
+        })
+        .join("")}</div>`;
+
+    view.querySelectorAll("[data-add-course]").forEach((button) => {
+      button.onclick = () => {
+        const course = courseCatalog.find(
+          (item) => item.code === button.dataset.addCourse,
+        );
+        if (!course || courses.some((item) => item.code === course.code)) {
+          return;
+        }
+
+        const assignedCourse = { ...course, graded: false };
+        const courseIndex = courses.length;
+        courses.push(assignedCourse);
+        students.push(...createCourseStudents(assignedCourse, courseIndex));
+        render();
+      };
+    });
+  }
+
+  render();
+}
+
 function courseDetail(view, [code]) {
   const course = courses.find((c) => c.code === code);
   if (!course) {
-    view.innerHTML = `<div class="card">${errorBox("هذا المقرر غير مسند إليك", "يمكنك فقط عرض مقرراتك.", '<a class="btn primary" href="#/doctor/courses">العودة للمقررات</a>')}</div>`;
+    view.innerHTML = `<div class="card">${errorBox("هذا المقرر غير مسند إليك", "يمكنك فقط عرض مقرراتك.", '<a class="btn primary" href="courses.html">العودة للمقررات</a>')}</div>`;
     return;
   }
   let tab = "grades";
@@ -79,10 +119,11 @@ function courseDetail(view, [code]) {
     pageHead(
       course.name,
       `${course.code} · ${course.students} طالب · ${course.hours} ساعات · السنة ${course.year}`,
-      '<a class="btn ghost" href="#/doctor/courses">رجوع</a>',
+      '<a class="btn ghost" href="courses.html">رجوع</a>',
     ) + '<div id="tabs"></div><div class="card" id="pane"></div>';
   const tabList = [
     { id: "grades", label: "الدرجات" },
+    { id: "programs", label: "توزيع الشعب" },
     { id: "lectures", label: "المحاضرات" },
     { id: "ann", label: "إعلانات المقرر" },
     { id: "chat", label: "الشات" },
@@ -94,10 +135,20 @@ function courseDetail(view, [code]) {
     });
     const pane = $("#pane", view);
     if (tab === "grades") {
-      pane.innerHTML = `<div class="list"><div class="li"><div class="grow"><b>حالة الدرجات</b><small>${course.graded ? "تم رفع درجات الميدتيرم وأعمال السنة" : "لم يتم رفع أي درجات بعد"}</small></div>${badge(course.graded ? "مرفوعة" : "تحتاج رفع", course.graded ? "green" : "amber")}<a class="btn primary" href="#/doctor/grades?course=${code}">رفع الدرجات</a></div></div>`;
+      pane.innerHTML = `<div class="list"><div class="li"><div class="grow"><b>حالة الدرجات</b><small>${course.graded ? "تم رفع درجات الميدتيرم وأعمال السنة" : "لم يتم رفع أي درجات بعد"}</small></div>${badge(course.graded ? "مرفوعة" : "تحتاج رفع", course.graded ? "green" : "amber")}<a class="btn primary" href="grades.html?course=${code}">رفع الدرجات</a></div></div>`;
+    } else if (tab === "programs") {
+      const programCounts = courseProgramCounts(code);
+      pane.innerHTML = `<h3>توزيع طلاب ${esc(course.name)} حسب الشعبة</h3><div class="course-program-grid">${programCounts
+        .map(
+          ({ program, count }) =>
+            `<article class="course-program-card"><span>${program}</span><b>${count}</b><small>طالب</small></article>`,
+        )
+        .join(
+          "",
+        )}</div><p class="course-program-total">إجمالي الطلاب في المقرر: <b>${programCounts.reduce((total, item) => total + item.count, 0)}</b></p>`;
     } else if (tab === "lectures") {
       const l = lectures.filter((x) => x.course === code);
-      pane.innerHTML = `<div class="head" style="margin-bottom:6px"><h3 style="margin:0">${l.length} محاضرات</h3><a class="btn primary" href="#/doctor/lectures?course=${code}">رفع محاضرة</a></div>${l.length ? `<div class="list">${lecRows(l)}</div>` : empty("لا توجد محاضرات لهذا المقرر")}`;
+      pane.innerHTML = `<div class="head" style="margin-bottom:6px"><h3 style="margin:0">${l.length} محاضرات</h3><a class="btn primary" href="lectures.html?course=${code}">رفع محاضرة</a></div>${l.length ? `<div class="list">${lecRows(l)}</div>` : empty("لا توجد محاضرات لهذا المقرر")}`;
     } else if (tab === "ann") {
       const a = announcements.filter((x) => x.course === code);
       pane.innerHTML = `<div class="head" style="margin-bottom:6px"><h3 style="margin:0">إعلانات المقرر</h3><button class="btn primary" id="new">إعلان جديد</button></div>${a.length ? `<div class="list">${a.map((x) => `<div class="li"><span class="ico amber">${icon("mega")}</span><div class="grow"><b>${esc(x.title)}</b><small>${esc(x.body)} · ${x.at}</small></div></div>`).join("")}</div>` : empty("لا توجد إعلانات", "انشر إعلانًا ليصل لطلاب المقرر.", "mega")}`;
@@ -131,7 +182,7 @@ function courseDetail(view, [code]) {
         ? `<div class="list">${t
             .map((x) => {
               const s = studentById(x.sid);
-              return `<a href="#/doctor/chats/${x.sid}" class="li"><span class="avatar">${s.name[0]}</span><div class="grow"><b>${s.name}</b><small>${esc(x.msgs[x.msgs.length - 1].text)}</small></div>${x.unread ? badge(x.unread, "red") : ""}</a>`;
+              return `<a href="chats.html?id=${x.sid}" class="li"><span class="avatar">${s.name[0]}</span><div class="grow"><b>${s.name}</b><small>${esc(x.msgs[x.msgs.length - 1].text)}</small></div>${x.unread ? badge(x.unread, "red") : ""}</a>`;
             })
             .join("")}</div>`
         : empty("لا توجد محادثات في هذا المقرر", "", "chat");
@@ -357,7 +408,7 @@ function gradesPage(view, _p, q) {
         label: "إرسال الدرجات",
         onOk: () => {
           dirty = false;
-          view.innerHTML = `<div class="card">${success("تم إرسال الدرجات بنجاح", `وصلت الدرجات لطلاب ${cname(course)} وستظهر لهم في تطبيق الموبايل.`, '<a class="btn primary" href="#/doctor">العودة للوحة الدكتور</a>')}</div>`;
+          view.innerHTML = `<div class="card">${success("تم إرسال الدرجات بنجاح", `وصلت الدرجات لطلاب ${cname(course)} وستظهر لهم في تطبيق الموبايل.`, '<a class="btn primary" href="dashboard.html">العودة للوحة الدكتور</a>')}</div>`;
         },
       });
   }
@@ -436,9 +487,9 @@ function lecturesPage(view, _p, q) {
           body: "سيتم فقد بيانات المحاضرة والملف المختار.",
           label: "مغادرة",
           danger: true,
-          onOk: () => go("#/doctor"),
+          onOk: () => go("dashboard.html"),
         })
-      : go("#/doctor");
+      : go("dashboard.html");
   $("#go", view).onclick = () => {
     const f = up.get(),
       errs = {
@@ -469,7 +520,7 @@ function lecturesPage(view, _p, q) {
           at: stamp(),
         };
         lectures.unshift(l);
-        view.innerHTML = `<div class="card">${success("تم رفع المحاضرة بنجاح", `${esc(l.title)} — ${cname(course)}. تم الرفع: ${l.at}. وصل إشعار لطلاب المقرر.`, `<div class="acts" style="justify-content:center"><a class="btn outline" href="#/doctor/lectures?course=${course}" id="again">رفع محاضرة أخرى</a><a class="btn primary" href="#/doctor/courses/${course}">عرض المحاضرات</a></div>`)}</div>`;
+        view.innerHTML = `<div class="card">${success("تم رفع المحاضرة بنجاح", `${esc(l.title)} — ${cname(course)}. تم الرفع: ${l.at}. وصل إشعار لطلاب المقرر.`, `<div class="acts" style="justify-content:center"><a class="btn outline" href="lectures.html?course=${course}" id="again">رفع محاضرة أخرى</a><a class="btn primary" href="course-detail.html?code=${course}">عرض المحاضرات</a></div>`)}</div>`;
         $("#again", view).onclick = (e) => {
           e.preventDefault();
           lecturesPage(view, [], { course: "" });
@@ -518,7 +569,7 @@ function doctorProfilePage(view) {
           <span class="profile-action-copy"><b>إعدادات الإشعارات</b><small>تخصيص التنبيهات</small></span>
           <span class="profile-chevron">${icon("chevD")}</span>
         </button>
-        <a class="profile-action" href="#/doctor/chats">
+        <a class="profile-action" href="chats.html">
           <span class="profile-action-icon green">${icon("chat")}</span>
           <span class="profile-action-copy"><b>التواصل مع الدعم</b><small>الإبلاغ عن مشكلة أو طلب مساعدة</small></span>
           <span class="profile-chevron">${icon("chevD")}</span>
@@ -620,13 +671,7 @@ function doctorProfilePage(view) {
       },
     );
 
-  $("#profile-logout", view).onclick = () =>
-    modal(
-      `<h2>تسجيل الخروج</h2><p>تسجيل الخروج غير متاح في النسخة التجريبية.</p><div class="acts"><button class="btn primary ok">حسنًا</button></div>`,
-      (dialog, close) => {
-        $(".ok", dialog).onclick = close;
-      },
-    );
+  $("#profile-logout", view).onclick = () => Auth.logout();
 }
 
 // ---------- SCRUM-97: مركز محادثات الدكتور ----------
@@ -647,7 +692,7 @@ function chatsPage(view, [id]) {
           .map((t) => {
             const s = studentById(t.sid),
               last = t.msgs[t.msgs.length - 1];
-            return `<a href="#/doctor/chats/${t.sid}" class="th ${t.sid === id ? "on" : ""}"><span class="avatar">${s.name[0]}</span><div style="flex:1;min-width:0"><b style="font-size:13px">${s.name}</b><div style="font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(last.text || last.file)}</div></div>${t.unread ? badge(t.unread, "red") : ""}</a>`;
+            return `<a href="chats.html?id=${t.sid}" class="th ${t.sid === id ? "on" : ""}"><span class="avatar">${s.name[0]}</span><div style="flex:1;min-width:0"><b style="font-size:13px">${s.name}</b><div style="font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(last.text || last.file)}</div></div>${t.unread ? badge(t.unread, "red") : ""}</a>`;
           })
           .join("")
       : empty("لا توجد محادثات", "", "chat");
@@ -670,11 +715,11 @@ function chatsPage(view, [id]) {
     pane.innerHTML = errorBox(
       "المحادثة غير متاحة",
       "",
-      '<a class="btn primary" href="#/doctor/chats">العودة للمحادثات</a>',
+      '<a class="btn primary" href="chats.html">العودة للمحادثات</a>',
     );
     return;
   }
-  pane.innerHTML = `<div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center"><span class="avatar">${stu.name[0]}</span><div style="flex:1"><b>${stu.name}</b><div style="font-size:12px;color:var(--mut)">${stu.id} · سياق المقرر: ${cname(stu.course)}</div></div><a class="btn ghost menu" href="#/doctor/chats">القائمة</a></div>
+  pane.innerHTML = `<div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center"><span class="avatar">${stu.name[0]}</span><div style="flex:1"><b>${stu.name}</b><div style="font-size:12px;color:var(--mut)">${stu.id} · سياق المقرر: ${cname(stu.course)}</div></div><a class="btn ghost menu" href="chats.html">القائمة</a></div>
     <div class="scroll" id="msgs"></div><div class="compose"><input type="file" hidden id="f"><button class="btn ghost" id="clip" aria-label="إرفاق ملف">${icon("clip")}</button><input class="input" id="txt" placeholder="اكتب ردك..."><button class="btn primary" id="snd" aria-label="إرسال" disabled>${icon("send")}</button></div>`;
   const msgs = $("#msgs", pane),
     txt = $("#txt", pane);

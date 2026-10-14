@@ -1,43 +1,39 @@
 # UNIWAY Web
 
-واجهة UNIWAY مبنية حاليًا باستخدام HTML وCSS وJavaScript عادي. افتح `index.html`
-مباشرة أو استخدم Live Server؛ لا يحتاج التشغيل الأساسي إلى build أو npm.
+واجهة UNIWAY مبنية بـ HTML وCSS وJavaScript عادي، وكل شاشة صفحة HTML مستقلة.
+افتح `index.html` (صفحة تسجيل الدخول) عبر Live Server أو أي سيرفر محلي؛ لا يحتاج build أو npm.
+
+## الحسابات التجريبية
+
+| الدور | الكود | كلمة المرور | يفتح |
+| --- | --- | --- | --- |
+| دكتور | `DR1001` | `123456` | `doctor/dashboard.html` |
+| شؤون الطلاب | `SA2001` | `123456` | `affairs/dashboard.html` |
+| أدمن | `AD3001` | `123456` | `admin/dashboard.html` |
+
+الدور يتحدد من الحساب اللي سجّلت به (مفيش اختيار دور داخل الصفحات). لو فتحت صفحة دور
+غير دورك أو من غير تسجيل دخول، بيرجعك لصفحتك أو لصفحة الدخول. زر "خروج" في الشريط العلوي.
 
 ## هيكل المشروع
 
 ```text
-css/
-  style.css                 # التنسيقات المشتركة ودعم RTL والتصميم المتجاوب
+index.html                  # تسجيل الدخول
+css/  style.css, login.css
 js/
-  core/
-    app.js                  # هيكل التطبيق، التنقل، تعريف الأدوار وحماية المسارات
-    data.js                 # بيانات تجريبية مشتركة
-    ui.js                   # مكونات وأدوات واجهة مشتركة
-  roles/
-    admin/
-      pages.js              # صفحات الأدمن
-    affairs/
-      pages.js              # صفحات شؤون الطلاب
-    doctor/
-      pages.js              # صفحات الدكتور
-index.html                  # نقطة تشغيل التطبيق وترتيب تحميل الملفات
+  login.js                  # منطق صفحة الدخول
+  core/  auth.js            # الحسابات والجلسة وحماية الصفحات
+         shell.js           # القائمة الجانبية والمستخدم والخروج
+         data.js, ui.js     # بيانات تجريبية ومكونات مشتركة
+  roles/ doctor|affairs|admin/pages.js   # منطق صفحات كل دور
+doctor/   dashboard, courses, course-add, course-detail, grades, lectures, chats, profile
+affairs/  dashboard, requests, request-detail, admissions, admission-detail, grade-appeals,
+          grade-appeal-detail, students, student-detail, documents, conversations, military-education
+admin/    dashboard, users
 ```
 
-## إضافة صفحة لدور
+الصفحات اللي فيها id بتاخده من الرابط: `course-detail.html?code=COMP301`، `student-detail.html?id=...`.
 
-1. أضف معالج الصفحة في `js/roles/<role>/pages.js`.
-2. أضف المسار والدور ومعالج الصفحة إلى قائمة `ROUTES` في `js/core/app.js`.
-3. أضف رابط الصفحة إلى قائمة التنقل الخاصة بالدور في `NAV`.
+## ملاحظة أمان
 
-يجب تحميل ملفات الصفحات بعد `core/ui.js` وقبل `core/app.js`، كما هو موضح في
-`index.html`.
-
-## الصلاحيات
-
-حارس المسارات الحالي للتنقل داخل الواجهة التجريبية فقط. عند ربط المشروع بخادم،
-يجب التحقق من هوية المستخدم وصلاحياته على الخادم أيضًا؛ إخفاء المسارات أو حمايتها
-في JavaScript وحده لا يوفر حماية فعلية.
-
-## GitHub
-
-https://github.com/Abram-anw/uniway-wep
+الحسابات وكلمات المرور موجودة في `js/core/auth.js` للعرض التجريبي فقط، ومين يفتح الملف يشوفها.
+عند الربط بخادم لازم التحقق من الدخول والصلاحيات على الخادم.

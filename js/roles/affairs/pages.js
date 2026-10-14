@@ -59,7 +59,7 @@ const renderAdmissionDetailPage = (view, [id]) => {
   if (!application) {
     view.innerHTML =
       pageHead("تفاصيل الطلب", "الطلب المحدد غير موجود") +
-      `<div class="card">${errorBox("لم يتم العثور على الطلب", "تأكد من رقم الطلب أو عد إلى قائمة الطلبات.", '<a class="btn primary" href="#/affairs/admissions">العودة إلى قائمة الطلبات</a>')}</div>`;
+      `<div class="card">${errorBox("لم يتم العثور على الطلب", "تأكد من رقم الطلب أو عد إلى قائمة الطلبات.", '<a class="btn primary" href="admissions.html">العودة إلى قائمة الطلبات</a>')}</div>`;
     return;
   }
 
@@ -73,7 +73,7 @@ const renderAdmissionDetailPage = (view, [id]) => {
   ];
 
   view.innerHTML =
-    pageHead(application.applicationNumber, `طلب قبول • ${application.studentName}`, '<a class="btn ghost" href="#/affairs/admissions">رجوع</a>') +
+    pageHead(application.applicationNumber, `طلب قبول • ${application.studentName}`, '<a class="btn ghost" href="admissions.html">رجوع</a>') +
     `<div class="card" style="margin-bottom:16px">${badge(admissionStatusMeta[application.status].label, admissionStatusMeta[application.status].tone)}</div>
     <div class="grid g2">
       <div class="card">
@@ -205,26 +205,38 @@ const affairsAdmissionsPage = (view, _p, query = {}) => {
   const selectedStatus = query.status || "";
   const filtered = highSchoolApplications.filter((app) => (!selectedStatus || app.status === selectedStatus));
 
-  view.innerHTML =
-    pageHead("طلبات القبول", "مراجعة طلبات القبول للمدارس الثانوية ومتابعة الحالة") +
-    `<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px">
-      ${Object.entries(admissionStatusMeta)
-        .map(
-          ([key, meta]) => `
-            <a href="#/affairs/admissions?status=${key}" class="card link" style="padding:14px;min-height:88px">
-              <span class="ico ${meta.tone}" style="width:34px;height:34px">${icon(key === "new" ? "users" : key === "accepted" ? "check" : key === "rejected" ? "alert" : key === "missing_info" ? "file" : "clipboard", 18)}</span>
-              <span style="flex:1;min-width:0">
-                <b style="display:block; font-size:13px; margin-bottom:4px">${meta.label}</b>
-                <small style="color:var(--mut)">${highSchoolApplications.filter((app) => app.status === key).length} طلب</small>
-              </span>
-            </a>
-          `,
-        )
-        .join("")}
-    </div>
-    <div class="card" id="admissions-table"></div>`;
+  useTemplate(view, "affairs-admissions-template");
+  const statusIcons = {
+    new: "users",
+    accepted: "check",
+    rejected: "alert",
+    missing_info: "file",
+    pending: "clipboard",
+  };
+  const statusContainer = $("[data-admission-statuses]", view);
+  Object.entries(admissionStatusMeta).forEach(([key, meta]) => {
+    const link = document.createElement("a");
+    link.href = `admissions.html?status=${encodeURIComponent(key)}`;
+    link.className = "card link";
+    link.style.cssText = "padding:14px;min-height:88px";
+    const iconElement = document.createElement("span");
+    iconElement.className = `ico ${meta.tone}`;
+    iconElement.style.cssText = "width:34px;height:34px";
+    iconElement.innerHTML = icon(statusIcons[key] || "clipboard", 18);
+    const details = document.createElement("span");
+    details.style.cssText = "flex:1;min-width:0";
+    const title = document.createElement("b");
+    title.style.cssText = "display:block;font-size:13px;margin-bottom:4px";
+    title.textContent = meta.label;
+    const count = document.createElement("small");
+    count.style.color = "var(--mut)";
+    count.textContent = `${highSchoolApplications.filter((app) => app.status === key).length} طلب`;
+    details.append(title, count);
+    link.append(iconElement, details);
+    statusContainer.append(link);
+  });
 
-  createTable($('#admissions-table', view), {
+  createTable($("[data-admissions-table]", view), {
     cols: [
       { title: "اسم الطالب", render: (app) => app.studentName },
       { title: "رقم الطلب", render: (app) => `<b>${app.applicationNumber}</b>` },
@@ -232,7 +244,7 @@ const affairsAdmissionsPage = (view, _p, query = {}) => {
       { title: "الحالة", render: (app) => badge(admissionStatusMeta[app.status].label, admissionStatusMeta[app.status].tone) },
     ],
     rows: filtered,
-    onRow: (app) => go(`#/affairs/admissions/${app.id}`),
+    onRow: (app) => go(`admission-detail.html?id=${app.id}`),
     search: {
       placeholder: "ابحث بالاسم أو رقم الطلب...",
       test: (app, q) => `${app.studentName} ${app.applicationNumber}`.toLowerCase().includes(q.toLowerCase()),
@@ -251,7 +263,7 @@ const renderGradeAppealDetailPage = (view, [id]) => {
   if (!appeal) {
     view.innerHTML =
       pageHead("تفاصيل الاستئناف", "الاستئناف المحدد غير موجود") +
-      `<div class="card">${errorBox("لا توجد بيانات للاستئناف", "تأكد من رقم الاستئناف أو عد إلى قائمة الاستئنافات.", '<a class="btn primary" href="#/affairs/grade-appeals">العودة إلى الاستئنافات</a>')}</div>`;
+      `<div class="card">${errorBox("لا توجد بيانات للاستئناف", "تأكد من رقم الاستئناف أو عد إلى قائمة الاستئنافات.", '<a class="btn primary" href="grade-appeals.html">العودة إلى الاستئنافات</a>')}</div>`;
     return;
   }
 
@@ -265,7 +277,7 @@ const renderGradeAppealDetailPage = (view, [id]) => {
   ];
 
   view.innerHTML =
-    pageHead(appeal.id, `استئناف • ${appeal.studentName}`, '<a class="btn ghost" href="#/affairs/grade-appeals">رجوع</a>') +
+    pageHead(appeal.id, `استئناف • ${appeal.studentName}`, '<a class="btn ghost" href="grade-appeals.html">رجوع</a>') +
     `<div class="card" style="margin-bottom:16px">${badge(appealStatusMeta[appeal.status].label, appealStatusMeta[appeal.status].tone)}</div>
     <div class="grid g2">
       <div class="card">
@@ -391,11 +403,11 @@ const renderGradeAppealDetailPage = (view, [id]) => {
 };
 
 const affairsGradeAppealsPage = (view) => {
-  view.innerHTML =
-    pageHead("استئنافات الطلاب", "مراجعة طلبات إعادة النظر في الدرجات وإدارة الحالة") +
-    `<div class="card" id="grade-appeals-table"></div>`;
+  useTemplate(view, "affairs-grade-appeals-template");
 
-  createTable($('#grade-appeals-table', view), {
+  $("h1", view).textContent = "استئنافات الطلاب";
+  $("p", view).textContent = "مراجعة طلبات إعادة النظر في الدرجات وإدارة الحالة";
+  createTable($("[data-appeals-table]", view), {
     cols: [
       { title: "اسم الطالب", render: (item) => item.studentName },
       { title: "رقم الاستئناف", render: (item) => `<b>${item.id}</b>` },
@@ -404,7 +416,7 @@ const affairsGradeAppealsPage = (view) => {
       { title: "الحالة", render: (item) => badge(appealStatusMeta[item.status].label, appealStatusMeta[item.status].tone) },
     ],
     rows: gradeAppeals,
-    onRow: (item) => go(`#/affairs/grade-appeals/${item.id}`),
+    onRow: (item) => go(`grade-appeal-detail.html?id=${item.id}`),
     search: {
       placeholder: "ابحث بالاسم أو المقرر أو رقم الاستئناف...",
       test: (item, q) => `${item.studentName} ${item.course} ${item.id}`.toLowerCase().includes(q.toLowerCase()),
@@ -424,11 +436,9 @@ const studentSearchRows = (query = "") => {
 
 const affairsStudentSearchPage = (view) => {
   const rows = studentSearchRows();
-  view.innerHTML =
-    pageHead("البحث عن طالب", "البحث حسب اسم الطالب أو الكود الجامعي ثم فتح بياناته مباشرة") +
-    `<div class="card" id="student-search-table"></div>`;
+  useTemplate(view, "affairs-student-search-template");
 
-  createTable($('#student-search-table', view), {
+  createTable($("[data-student-search-table]", view), {
     cols: [
       { title: "اسم الطالب", render: (student) => student.name },
       { title: "كود الطالب", render: (student) => `<b>${student.id}</b>` },
@@ -440,7 +450,7 @@ const affairsStudentSearchPage = (view) => {
       placeholder: "ابحث باسم الطالب أو كود الطالب...",
       test: (student, q) => `${student.name} ${student.id}`.toLowerCase().includes(q.toLowerCase()),
     },
-    onRow: (student) => go(`#/affairs/students/${student.id}`),
+    onRow: (student) => go(`student-detail.html?id=${student.id}`),
     empty: empty("لا توجد نتائج", "لا يوجد طلاب مطابقون لبحثك الحالي."),
   });
 };
@@ -450,7 +460,7 @@ const affairsStudentDetailPage = (view, [studentId]) => {
   if (!student) {
     view.innerHTML =
       pageHead("بيانات الطالب", "الطالب المطلوب غير موجود") +
-      `<div class="card">${errorBox("لم يتم العثور على هذا الطالب", "تأكد من كود الطالب أو عد إلى شاشة البحث.", '<a class="btn primary" href="#/affairs/students">العودة إلى البحث</a>')}</div>`;
+      `<div class="card">${errorBox("لم يتم العثور على هذا الطالب", "تأكد من كود الطالب أو عد إلى شاشة البحث.", '<a class="btn primary" href="students.html">العودة إلى البحث</a>')}</div>`;
     return;
   }
 
@@ -463,46 +473,30 @@ const affairsStudentDetailPage = (view, [studentId]) => {
     { label: "البريد الإلكتروني", value: student.email },
   ];
 
-  view.innerHTML =
-    pageHead("بيانات الطالب", `معلومات الطالب • ${student.name}`, '<a class="btn ghost" href="#/affairs/students">رجوع</a>') +
-    `<div class="grid g2" style="margin-top:16px">
-      <div class="card">
-        <h3>معلومات الطالب</h3>
-        <div class="list">
-          ${studentInfo
-            .map(
-              (item) => `
-                <div class="li" style="padding:10px 0">
-                  <div class="grow">
-                    <b>${item.label}</b>
-                    <small>${esc(item.value)}</small>
-                  </div>
-                </div>
-              `,
-            )
-            .join("")}
-        </div>
-      </div>
-      <div class="card">
-        <h3>إجراءات سريعة</h3>
-        <div class="list">
-          <div class="li" style="padding:12px 0">
-            <div class="grow">
-              <b>المستندات</b>
-              <small>استعراض المستندات المرفقة للطالب.</small>
-            </div>
-            <a class="btn primary" href="#/affairs/documents?studentId=${encodeURIComponent(student.id)}">فتح</a>
-          </div>
-          <div class="li" style="padding:12px 0">
-            <div class="grow">
-              <b>المحادثات</b>
-              <small>${unreadTotal ? `${unreadTotal} رسالة غير مقروءة` : "لا توجد رسائل غير مقروءة"}</small>
-            </div>
-            <a class="btn outline" href="#/affairs/conversations/${encodeURIComponent(student.id)}">فتح</a>
-          </div>
-        </div>
-      </div>
-    </div>`;
+  useTemplate(view, "affairs-student-detail-template");
+  $("[data-student-subtitle]", view).textContent = `معلومات الطالب • ${student.name}`;
+  const infoList = $("[data-student-info]", view);
+  studentInfo.forEach(({ label, value }) => {
+    const row = document.createElement("div");
+    row.className = "li";
+    row.style.padding = "10px 0";
+    const details = document.createElement("div");
+    details.className = "grow";
+    const name = document.createElement("b");
+    name.textContent = label;
+    const content = document.createElement("small");
+    content.textContent = value;
+    details.append(name, content);
+    row.append(details);
+    infoList.append(row);
+  });
+  $("[data-student-documents]", view).href =
+    `documents.html?studentId=${encodeURIComponent(student.id)}`;
+  $("[data-student-conversations]", view).href =
+    `conversations.html?id=${encodeURIComponent(student.id)}`;
+  $("[data-student-unread]", view).textContent = unreadTotal
+    ? `${unreadTotal} رسالة غير مقروءة`
+    : "لا توجد رسائل غير مقروءة";
 };
 
 const affairsStudentDocumentsPage = (view, _p, query = {}) => {
@@ -523,11 +517,9 @@ const affairsStudentDocumentsPage = (view, _p, query = {}) => {
     ? rows.filter((row) => row.studentId === targetStudentId || row.studentName === targetStudentId)
     : rows;
 
-  view.innerHTML =
-    pageHead("مستندات الطلاب", "عرض جميع المستندات المرتبطة بالطلاب مع حالة المراجعة ومعاينة الملف") +
-    `<div class="card" id="student-documents-table"></div>`;
+  useTemplate(view, "affairs-student-documents-template");
 
-  createTable($('#student-documents-table', view), {
+  createTable($("[data-student-documents-table]", view), {
     cols: [
       { title: "اسم الطالب", render: (row) => row.studentName },
       { title: "كود الطالب", render: (row) => `<b>${row.studentId}</b>` },
@@ -581,7 +573,7 @@ const affairsStudentConversationsPage = (view, [id]) => {
             const student = studentById(thread.sid);
             if (!student) return "";
             const last = thread.msgs[thread.msgs.length - 1];
-            return `<a href="#/affairs/conversations/${thread.sid}" class="th ${thread.sid === id ? "on" : ""}"><span class="avatar">${student.name[0]}</span><div style="flex:1;min-width:0"><b style="font-size:13px">${student.name}</b><div style="font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(last?.text || last?.file || "لا توجد رسائل")}</div></div>${thread.unread ? badge(thread.unread, "red") : ""}</a>`;
+            return `<a href="conversations.html?id=${thread.sid}" class="th ${thread.sid === id ? "on" : ""}"><span class="avatar">${student.name[0]}</span><div style="flex:1;min-width:0"><b style="font-size:13px">${student.name}</b><div style="font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(last?.text || last?.file || "لا توجد رسائل")}</div></div>${thread.unread ? badge(thread.unread, "red") : ""}</a>`;
           })
           .join("")
       : empty("لا توجد محادثات", "", "chat");
@@ -601,11 +593,11 @@ const affairsStudentConversationsPage = (view, [id]) => {
   }
 
   if (!cur || !stu) {
-    pane.innerHTML = errorBox("المحادثة غير متاحة", "", '<a class="btn primary" href="#/affairs/conversations">العودة إلى المحادثات</a>');
+    pane.innerHTML = errorBox("المحادثة غير متاحة", "", '<a class="btn primary" href="conversations.html">العودة إلى المحادثات</a>');
     return;
   }
 
-  pane.innerHTML = `<div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center"><span class="avatar">${stu.name[0]}</span><div style="flex:1"><b>${stu.name}</b><div style="font-size:12px;color:var(--mut)">${stu.id} · البريد: ${esc(stu.email)}</div></div><a class="btn ghost menu" href="#/affairs/conversations">القائمة</a></div>
+  pane.innerHTML = `<div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center"><span class="avatar">${stu.name[0]}</span><div style="flex:1"><b>${stu.name}</b><div style="font-size:12px;color:var(--mut)">${stu.id} · البريد: ${esc(stu.email)}</div></div><a class="btn ghost menu" href="conversations.html">القائمة</a></div>
     <div class="scroll" id="msgs"></div><div class="compose"><input class="input" id="txt" placeholder="اكتب ردك..."><button class="btn primary" id="snd" aria-label="إرسال">${icon("send")}</button></div>`;
 
   const msgs = $('#msgs', pane);
@@ -1035,58 +1027,54 @@ const affairsDashboard = (view) => {
   const approvedToday = studentRequests.filter((r) => r.status === "approved").length;
   const totalRequests = studentRequests.length;
 
-  view.innerHTML =
-    pageHead("لوحة شؤون الطلاب", "مراجعة الطلبات الأكاديمية والمالية والإدارية في الوقت الفعلي") +
-    `<div class="grid g4" style="margin-bottom:16px">${stat("إجمالي الطلبات", totalRequests, "clipboard", "blue")}${stat("قيد المراجعة", openRequests, "alert", "amber")}${stat("طلبات ذات أولوية عالية", urgentRequests, "star", "red")}${stat("طلبات تم اعتمادها", approvedToday, "check", "green")}</div>
-    <div class="grid g2" style="margin-bottom:16px">
-      <div class="card">
-        <h3>الأقسام الرئيسية</h3>
-        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));">
-          ${affairsSections
-            .map(
-              (section) => `
-                <a href="#/affairs/requests?section=${encodeURIComponent(section.label)}" class="card link" style="padding:14px;min-height:82px">
-                  <span class="ico blue" style="width:34px;height:34px">${icon(section.icon, 18)}</span>
-                  <span style="flex:1;min-width:0">
-                    <b style="display:block; font-size:13px; margin-bottom:4px">${section.label}</b>
-                    <small style="color:var(--mut)">${section.count} طلب</small>
-                  </span>
-                </a>
-              `,
-            )
-            .join("")}
-        </div>
-      </div>
-      <div class="card">
-        <h3>المراجعات السريعة</h3>
-        <div class="list">
-          ${studentRequests
-            .slice(0, 4)
-            .map(
-              (request) => `
-                <a href="#/affairs/requests/${request.id}" class="li" style="padding:10px 0">
-                  <span class="ico ${requestStatusMeta[request.status].tone}">${icon("clipboard", 18)}</span>
-                  <div class="grow">
-                    <b>${request.id}</b>
-                    <small>${request.studentName} · ${request.category}</small>
-                  </div>
-                  ${badge(requestStatusMeta[request.status].label, requestStatusMeta[request.status].tone)}
-                </a>
-              `,
-            )
-            .join("")}
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="head" style="margin-bottom:10px">
-        <h3 style="margin:0">أحدث الطلبات</h3>
-        <a class="btn ghost" href="#/affairs/requests">عرض جميع الطلبات</a>
-      </div>
-      <div id="affairs-latest"></div>
-    </div>`;
+  useTemplate(view, "affairs-dashboard-template");
+  const statValues = {
+    total: totalRequests,
+    open: openRequests,
+    urgent: urgentRequests,
+    approved: approvedToday,
+  };
+  Object.entries(statValues).forEach(([key, value]) => {
+    $(`[data-stat="${key}"]`, view).textContent = value;
+  });
 
-  createTable($("#affairs-latest", view), {
+  const sections = $("[data-sections]", view);
+  affairsSections.forEach((section) => {
+    const link = document.createElement("a");
+    link.href = `requests.html?section=${encodeURIComponent(section.label)}`;
+    link.className = "card link";
+    link.style.cssText = "padding:14px;min-height:82px";
+    const sectionIcon = document.createElement("span");
+    sectionIcon.className = "ico blue";
+    sectionIcon.style.cssText = "width:34px;height:34px";
+    sectionIcon.innerHTML = icon(section.icon, 18);
+    const details = document.createElement("span");
+    details.style.cssText = "flex:1;min-width:0";
+    const title = document.createElement("b");
+    title.style.cssText = "display:block;font-size:13px;margin-bottom:4px";
+    title.textContent = section.label;
+    const count = document.createElement("small");
+    count.style.color = "var(--mut)";
+    count.textContent = `${section.count} طلب`;
+    details.append(title, count);
+    link.append(sectionIcon, details);
+    sections.append(link);
+  });
+
+  const quickRequests = $("[data-quick-requests]", view);
+  studentRequests.slice(0, 4).forEach((request) => {
+    const status = requestStatusMeta[request.status];
+    const link = document.createElement("a");
+    link.href = `request-detail.html?id=${encodeURIComponent(request.id)}`;
+    link.className = "li";
+    link.style.padding = "10px 0";
+    link.innerHTML = `<span class="ico ${status.tone}">${icon("clipboard", 18)}</span>
+      <div class="grow"><b>${esc(request.id)}</b><small>${esc(request.studentName)} · ${esc(request.category)}</small></div>
+      ${badge(status.label, status.tone)}`;
+    quickRequests.append(link);
+  });
+
+  createTable($("[data-latest-requests]", view), {
     cols: [
       { title: "رقم الطلب", render: (r) => `<b>${r.id}</b>` },
       { title: "الطالب", render: (r) => r.studentName },
@@ -1097,7 +1085,7 @@ const affairsDashboard = (view) => {
     ],
     rows: studentRequests.slice(0, 5),
     pageSize: 4,
-    onRow: (r) => go(`#/affairs/requests/${r.id}`),
+    onRow: (r) => go(`request-detail.html?id=${r.id}`),
     empty: empty("لا توجد طلبات في هذا القسم", "ستظهر أحدث الطلبات هنا عند التقديم."),
   });
 };
@@ -1109,11 +1097,9 @@ const affairsRequestsPage = (view, _p, query = {}) => {
     return request.section === selectedSection || request.category === selectedSection;
   });
 
-  view.innerHTML =
-    pageHead("قائمة طلبات الطلاب", "استعراض جميع الطلبات، البحث عنها، والتصفية حسب الحالة أو القسم") +
-    `<div class="card" id="affairs-table"></div>`;
+  useTemplate(view, "affairs-requests-template");
 
-  createTable($("#affairs-table", view), {
+  createTable($("[data-requests-table]", view), {
     cols: [
       { title: "رقم الطلب", render: (r) => `<b>${r.id}</b>` },
       { title: "الطالب", render: (r) => r.studentName },
@@ -1124,7 +1110,7 @@ const affairsRequestsPage = (view, _p, query = {}) => {
       { title: "تاريخ الإرسال", render: (r) => r.submittedAt },
     ],
     rows: filteredRows,
-    onRow: (r) => go(`#/affairs/requests/${r.id}`),
+    onRow: (r) => go(`request-detail.html?id=${r.id}`),
     search: {
       placeholder: "ابحث برقم الطلب أو اسم الطالب أو القسم...",
       test: (r, q) =>
@@ -1153,7 +1139,7 @@ const affairsRequestDetailPage = (view, [requestId]) => {
   if (!request) {
     view.innerHTML =
       pageHead("تفاصيل الطلب", "الطلب المحدد غير موجود") +
-      `<div class="card">${errorBox("لم يتم العثور على هذا الطلب", "تأكد من الرابط أو عد إلى قائمة الطلبات.", '<a class="btn primary" href="#/affairs/requests">العودة إلى الطلبات</a>')}</div>`;
+      `<div class="card">${errorBox("لم يتم العثور على هذا الطلب", "تأكد من الرابط أو عد إلى قائمة الطلبات.", '<a class="btn primary" href="requests.html">العودة إلى الطلبات</a>')}</div>`;
     return;
   }
 
@@ -1203,7 +1189,7 @@ const affairsRequestDetailPage = (view, [requestId]) => {
       pageHead(
         request.id,
         `${request.studentName} · ${request.category}`,
-        '<a class="btn ghost" href="#/affairs/requests">رجوع</a>',
+        '<a class="btn ghost" href="requests.html">رجوع</a>',
       ) +
       `<div class="card" style="margin-bottom:16px">${renderRequestStatusSummary(request)}</div>
       <div class="grid g2">

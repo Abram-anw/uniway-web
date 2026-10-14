@@ -1,5 +1,15 @@
-// بيانات تجريبية — استبدلها بالـ API لاحقًا. الدكتور بيشوف مقرراته بس.
-const courses = [
+// بيانات تجريبية — استبدلها ببيانات الـ API عند ربط المشروع بالخادم.
+const studyPrograms = [
+  "علوم حاسب",
+  "بحتة حاسب",
+  "إحصاء حاسب",
+  "فيزياء حاسب",
+  "بحتة منفرد",
+  "إحصاء منفرد",
+];
+
+// كتالوج المقررات المتاحة؛ أضف المقررات الجديدة إلى هذه القائمة.
+const courseCatalog = [
   {
     code: "COMP301",
     name: "قواعد البيانات",
@@ -24,7 +34,36 @@ const courses = [
     year: "الرابعة",
     graded: false,
   },
+  {
+    code: "COMP205",
+    name: "هياكل البيانات",
+    students: 36,
+    hours: 3,
+    year: "الثانية",
+    graded: false,
+  },
+  {
+    code: "COMP302",
+    name: "نظم التشغيل",
+    students: 40,
+    hours: 3,
+    year: "الثالثة",
+    graded: false,
+  },
+  {
+    code: "STAT201",
+    name: "مبادئ الإحصاء",
+    students: 32,
+    hours: 2,
+    year: "الثانية",
+    graded: false,
+  },
 ];
+
+const courses = courseCatalog.slice(0, 3).map((course, index) => ({
+  ...course,
+  graded: index === 1,
+}));
 const courseLabel = (c) => `${c.code} – ${c.name} – ${c.students} طالب`;
 const first = [
   "أحمد",
@@ -41,21 +80,29 @@ const first = [
   "هبة",
 ];
 const last = ["العمري", "الزهراني", "المطيري", "السبيعي", "الشهري", "الغامدي"];
-const students = courses.flatMap((c, ci) =>
-  Array.from({ length: c.students }, (_, i) => {
-    const s = ci * 7 + i;
+const createCourseStudents = (course, courseIndex) =>
+  Array.from({ length: course.students }, (_, i) => {
+    const s = courseIndex * 7 + i;
     return {
-      id: `2022${ci + 1}${1000 + i}`,
+      id: `2022${courseIndex + 1}${1000 + i}`,
       name: `${first[s % 12]} ${last[(s * 5 + i) % 6]}`,
-      course: c.code,
-      mid: c.graded ? 12 + (s % 8) : null,
-      work: c.graded ? 20 + (s % 10) : null,
+      course: course.code,
+      program: studyPrograms[(i + courseIndex) % studyPrograms.length],
+      mid: course.graded ? 12 + (s % 8) : null,
+      work: course.graded ? 20 + (s % 10) : null,
       fin: null,
-      email: `s2022${ci + 1}${1000 + i}@sci.asu.edu.eg`,
+      email: `s2022${courseIndex + 1}${1000 + i}@sci.asu.edu.eg`,
     };
-  }),
-);
+  });
+const students = courses.flatMap(createCourseStudents);
 const studentById = (id) => students.find((s) => s.id === id);
+const courseProgramCounts = (courseCode) =>
+  studyPrograms.map((program) => ({
+    program,
+    count: students.filter(
+      (student) => student.course === courseCode && student.program === program,
+    ).length,
+  }));
 const lectures = [
   {
     id: 1,
