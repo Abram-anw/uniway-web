@@ -67,14 +67,18 @@
     }
     if (invalid) return;
 
-    const account = Auth.login(codeValue, passwordValue, $("#remember").checked);
-    if (!account) {
+    const result = Auth.login(codeValue, passwordValue, $("#remember").checked);
+    if (!result) {
       showAlert("الكود الجامعي أو كلمة المرور غير صحيحة.");
       password.select();
       return;
     }
+    if (result.blocked) {
+      showAlert("هذا الحساب معطَّل. يُرجى التواصل مع إدارة النظام.");
+      return;
+    }
     $("#submit").disabled = true;
     $("#submit").textContent = "جاري الدخول...";
-    location.href = account.home; // دكتور / شؤون / أدمن حسب الحساب
+    location.href = result.home; // دكتور / شؤون / أدمن / طالب حسب الحساب
   });
 })();

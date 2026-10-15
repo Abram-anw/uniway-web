@@ -1167,3 +1167,91 @@ tr.click:hover td {
     display: none;
   }
 }
+
+/* CRUD management screens */
+.side {
+  overflow-y: auto;
+}
+
+.modal {
+  max-height: 86vh;
+  overflow: auto;
+}
+
+.alert {
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.alert.bad {
+  background: var(--bad-l);
+  color: var(--bad);
+}
+
+/* Checkbox (F2) */
+.chk {
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.chk input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.chk .box {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.chk .box::after {
+  width: 5px;
+  height: 10px;
+  margin-top: -2px;
+  transform: rotate(45deg) scale(0);
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  content: "";
+  transition: transform 0.15s;
+}
+
+.chk input:checked + .box {
+  border-color: var(--blue);
+  background: var(--blue);
+}
+
+.chk input:checked + .box::after {
+  transform: rotate(45deg) scale(1);
+}
+
+.chk input:focus-visible + .box {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.chk.off {
+  cursor: not-allowed;
+}
+
+.chk.off .box {
+  background: var(--bg);
+  opacity: 0.7;
+}
+
+.chk.lg .box {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+}

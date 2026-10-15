@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="../css/style.css" />
     <!-- حماية الصفحة: لازم المستخدم يكون داخل بحساب نفس الدور -->
     <script src="../js/core/auth.js"></script>
-    <script>Auth.requireRole("affairs");</script>
+    <script src="../js/core/settings.js"></script>
+    <script>Auth.requireRole("affairs", "students.view");</script>
   </head>
   <body data-role="affairs">
     <div class="app">
@@ -49,6 +50,7 @@
     </div>
 
     <script src="../js/core/data.js"></script>
+    <script src="../js/core/store.js"></script>
     <script src="../js/core/ui.js"></script>
     <script src="../js/roles/affairs/pages.js"></script>
     <script src="../js/core/shell.js"></script>

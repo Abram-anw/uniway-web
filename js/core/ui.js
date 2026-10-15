@@ -57,6 +57,19 @@ function confirmDlg(o) {
   });
 }
 
+// Checkbox (F2): checkbox مخصص متوافق مع التصميم — attrs مثل checked/disabled/data-*
+const chk = (attrs = '', lg = false) =>
+  `<label class="chk ${lg ? 'lg' : ''} ${attrs.includes('disabled') ? 'off' : ''}"><input type="checkbox" ${attrs}><span class="box"></span></label>`;
+
+// toast بسيط للنجاح/الفشل
+function toast(msg, tone = "green") {
+  const t = document.createElement("div");
+  t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:200;padding:12px 20px;border-radius:12px;font-weight:700;font-size:13px;color:#fff;background:${tone === "green" ? "var(--ok)" : "var(--bad)"};box-shadow:0 8px 24px rgba(0,0,0,.2);transition:opacity .4s;`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 400); }, 2800);
+}
+
 // Field: label + محتوى + رسالة خطأ (id لازم عشان نحط فيه الخطأ)
 const field = (label, inner, id = '') => `<div class="field"><label>${label}</label>${inner}<div class="e" id="e-${id}" role="alert"></div></div>`;
 const setErr = (id, msg) => { const e = $('#e-' + id); if (e) e.textContent = msg || ''; };

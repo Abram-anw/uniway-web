@@ -472,8 +472,8 @@ function lecturesPage(view, _p, q) {
     },
   });
   up = createUpload($("#up", view), {
-    exts: ["pdf", "ppt", "pptx", "docx", "mp4"],
-    maxMB: 100,
+    exts: typeof Settings !== "undefined" ? Settings.get("lectureExts") : ["pdf", "ppt", "pptx", "docx", "mp4"],
+    maxMB: typeof Settings !== "undefined" ? Settings.get("maxLectureMB") : 100,
     disabled: !course,
     onPick: () => setErr("file"),
   });
@@ -533,7 +533,7 @@ function lecturesPage(view, _p, q) {
 }
 
 // ---------- ملف الدكتور الشخصي ----------
-let profileNotificationsEnabled = true;
+let profileNotificationsEnabled = typeof Settings !== "undefined" ? Settings.get("notificationsEnabled") !== false : true;
 
 function doctorProfilePage(view) {
   const studentCount = courses.reduce(
