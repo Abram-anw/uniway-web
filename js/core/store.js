@@ -34,7 +34,9 @@ const Catalog = (() => {
         state = read(key);
         if (!state || !Array.isArray(state.items)) {
           const seed = makeSeed();
-          state = { seq: seed.length, items: clone(seed) };
+          // assign IDs to seed items so get/update/remove work on first load
+          const items = seed.map((item, i) => item.id ? clone(item) : { id: `${prefix}-${i + 1}`, ...clone(item) });
+          state = { seq: items.length, items };
         }
         if (typeof state.seq !== "number") state.seq = state.items.length;
       }
@@ -129,7 +131,7 @@ const Catalog = (() => {
       for (let i = courses.length - 1; i >= 0; i--) {
         const cat = courseCatalog.find((c) => c.code === courses[i].code);
         if (!cat) { courses.splice(i, 1); continue; }
-        ["name", "hours", "year", "graded", "students"].forEach((k) => { courses[i][k] = cat[k]; });
+        ["name", "hours", "year", "graded", "students", "doctorName"].forEach((k) => { courses[i][k] = cat[k]; });
       }
     };
     const snap = read("courses");
@@ -140,6 +142,7 @@ const Catalog = (() => {
     const normalize = (data) => ({
       code: trim(data.code).toUpperCase(),
       name: trim(data.name),
+      doctorName: trim(data.doctorName),
       year: trim(data.year),
       hours: Number(data.hours),
       students: data.students === "" || data.students == null ? 0 : Number(data.students),
@@ -214,6 +217,18 @@ const Catalog = (() => {
       return Object.keys(errs).length ? errs : null;
     };
     const save = () => { normalize(); write("announcements", { items: clone(announcements) }); };
+    // المنشئ الفعلي (المستخدم الذي أنشأ الإعلان)، وليس الدور فقط — ليكون التعديل والحذف لصاحب الإعلان نفسه
+    const currentCreator = () => {
+      try {
+        const me = typeof Auth !== "undefined" && typeof Auth.current === "function" ? Auth.current() : null;
+        return me ? { code: String(me.code || ""), role: String(me.role || ""), name: String(me.name || "") } : null;
+      } catch (_) { return null; }
+    };
+    const isOwner = (record) => {
+      const me = currentCreator();
+      // الأدمن يدير كل الإعلانات؛ بقية الأدوار تملك إعلاناتها فقط
+      return !!me && (me.role === "admin" || String(record.createdBy || "") === me.code);
+    };
     return {
       list: () => announcements.slice(),
       get: (id) => announcements.find((a) => a.id === id) || null,
@@ -221,7 +236,18 @@ const Catalog = (() => {
         const g = guard(); if (g) return g;
         const errs = validate(data);
         if (errs) return { ok: false, errors: errs };
-        const record = { id: genId(), title: trim(data.title), body: trim(data.body), at: trim(data.at), course: trim(data.course) };
+        const me = currentCreator();
+        if (!me) return { ok: false, error: "لا يمكن إضافة إعلان بدون جلسة نشطة." };
+        const record = {
+          id: genId(),
+          title: trim(data.title),
+          body: trim(data.body),
+          at: trim(data.at),
+          course: trim(data.course),
+          createdBy: me.code,
+          creatorRole: me.role,
+          creatorName: me.name,
+        };
         announcements.unshift(record); save();
         return { ok: true, record };
       },
@@ -229,10 +255,15 @@ const Catalog = (() => {
         const g = guard(); if (g) return g;
         const record = announcements.find((a) => a.id === id);
         if (!record) return { ok: false, error: "الإعلان غير موجود." };
+        if (!isOwner(record)) {
+          return { ok: false, error: "لا يمكنك تعديل إعلان لم تقم بإنشائه." };
+        }
         const errs = validate(data);
         if (errs) return { ok: false, errors: errs };
         record.title = trim(data.title); record.body = trim(data.body);
-        record.at = trim(data.at); record.course = trim(data.course);
+        record.at = trim(data.at);
+        // نموذج الأدمن لا يتضمن حقل المقرر — لا نمسحه عند التعديل
+        if (data.course !== undefined) record.course = trim(data.course);
         save();
         return { ok: true, record };
       },
@@ -240,6 +271,10 @@ const Catalog = (() => {
         const g = guard(); if (g) return g;
         const idx = announcements.findIndex((a) => a.id === id);
         if (idx === -1) return { ok: false, error: "الإعلان غير موجود." };
+        const record = announcements[idx];
+        if (!isOwner(record)) {
+          return { ok: false, error: "لا يمكنك حذف إعلان لم تقم بإنشائه." };
+        }
         announcements.splice(idx, 1); save();
         return { ok: true };
       },

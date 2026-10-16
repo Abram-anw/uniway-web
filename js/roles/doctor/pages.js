@@ -168,6 +168,7 @@ function courseDetail(view, [code]) {
                 title: $("#at", m).value.trim(),
                 body: $("#ab", m).value.trim(),
                 at: "الآن",
+                createdBy: "doctor",
               });
               close();
               show();

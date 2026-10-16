@@ -13,6 +13,7 @@ const courseCatalog = [
   {
     code: "COMP301",
     name: "قواعد البيانات",
+    doctorName: "د. منى السيد",
     students: 45,
     hours: 3,
     year: "الثالثة",
@@ -21,6 +22,7 @@ const courseCatalog = [
   {
     code: "COMP401",
     name: "هندسة البرمجيات",
+    doctorName: "د. عمر العتيبي",
     students: 42,
     hours: 3,
     year: "الرابعة",
@@ -29,6 +31,7 @@ const courseCatalog = [
   {
     code: "COMP204",
     name: "الذكاء الاصطناعي",
+    doctorName: "د. سارة الزهراني",
     students: 35,
     hours: 3,
     year: "الرابعة",
@@ -37,6 +40,7 @@ const courseCatalog = [
   {
     code: "COMP205",
     name: "هياكل البيانات",
+    doctorName: "د. خالد الغامدي",
     students: 36,
     hours: 3,
     year: "الثانية",
@@ -45,6 +49,7 @@ const courseCatalog = [
   {
     code: "COMP302",
     name: "نظم التشغيل",
+    doctorName: "د. أحمد المطيري",
     students: 40,
     hours: 3,
     year: "الثالثة",
@@ -53,6 +58,7 @@ const courseCatalog = [
   {
     code: "STAT201",
     name: "مبادئ الإحصاء",
+    doctorName: "د. نورة الشهري",
     students: 32,
     hours: 2,
     year: "الثانية",
@@ -135,16 +141,24 @@ const lectures = [
 ];
 const announcements = [
   {
+    id: "ANN-1",
     course: "COMP301",
     title: "موعد اختبار الميدتيرم",
     body: "الاختبار يوم الأحد القادم في قاعة 3.",
     at: "08 أكتوبر 2026",
+    createdBy: "SA2001",
+    creatorRole: "affairs",
+    creatorName: "سارة العمري",
   },
   {
+    id: "ANN-2",
     course: "COMP401",
     title: "تسليم المشروع",
     body: "آخر موعد لتسليم المشروع نهاية الأسبوع.",
     at: "02 أكتوبر 2026",
+    createdBy: "SA2001",
+    creatorRole: "affairs",
+    creatorName: "سارة العمري",
   },
 ];
 const pick = (code, n) => students.filter((s) => s.course === code)[n].id;

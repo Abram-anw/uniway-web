@@ -813,19 +813,23 @@ tr.click:hover td {
   position: fixed;
   inset: 0;
   z-index: 50;
-  display: grid;
-  place-items: center;
-  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 20px;
+  overflow-y: auto;
   background: rgba(13, 27, 42, 0.55);
 }
 
 .modal {
   width: 100%;
   max-width: 460px;
+  flex-shrink: 0;
   padding: 22px;
   border-radius: 18px;
   background: #fff;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  margin: auto;
 }
 
 .modal h2 {
@@ -1170,7 +1174,7 @@ tr.click:hover td {
 
 /* CRUD management screens */
 .side {
-  overflow-y: auto;
+  overflow-y: hidden;
 }
 
 .modal {

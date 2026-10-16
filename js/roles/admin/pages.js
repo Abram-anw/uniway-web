@@ -75,16 +75,10 @@ const adminDashboard = (view) => {
     <h3 style="margin:0 0 12px;font-size:15px;font-weight:800">اختصارات الإدارة</h3>
     <div class="grid g4" style="margin-bottom:20px" id="shortcuts"></div>
 
-    <div class="grid g2">
-      <div class="card">
+    <div class="card">
         <h3>توزيع المستخدمين حسب الدور</h3>
         <div class="list" id="role-dist"></div>
-      </div>
-      <div class="card">
-        <h3>نشاط الطلبات الأخيرة</h3>
-        <div class="list" id="recent-requests"></div>
-      </div>
-    </div>`;
+      </div>`;
 
   // اختصارات — تُعرض فقط ما يملك المستخدم صلاحية الوصول إليه
   const shortcuts = [
@@ -122,15 +116,6 @@ const adminDashboard = (view) => {
     dist.appendChild(div);
   });
 
-  // آخر طلبات
-  const rr = document.getElementById("recent-requests");
-  studentRequests.slice(0, 5).forEach(req => {
-    const meta = requestStatusMeta[req.status] || { label: req.status, tone: "gray" };
-    const div  = document.createElement("div");
-    div.className = "li";
-    div.innerHTML = `<div class="grow"><b>${esc(req.studentName)}</b><small>${esc(req.category)} · ${req.submittedAt}</small></div>${badge(meta.label, meta.tone)}`;
-    rr.appendChild(div);
-  });
 };
 
 // ── نموذج إضافة مستخدم (modal) ─────────────────────────────────────────
@@ -417,6 +402,16 @@ function bindUserActions(tableEl, getUsers, redraw) {
 const adminUsers = (view) => {
   let activeTab = "student";
 
+  const tabsHost = () => view.querySelector("#tabs-host");
+
+  // إعادة رسم التبويبات لتوضيح التبويب النشط بلونه عند التبديل بين الأدوار
+  const renderTabs = () =>
+    tabs(tabsHost(), ROLE_TABS, activeTab, (tab) => {
+      activeTab = tab;
+      renderTabs();
+      renderTable();
+    });
+
   const render = () => {
     view.innerHTML = `
       ${pageHead(
@@ -429,10 +424,7 @@ const adminUsers = (view) => {
         <div id="table-host"></div>
       </div>`;
 
-    tabs(view.querySelector("#tabs-host"), ROLE_TABS, activeTab, (tab) => {
-      activeTab = tab;
-      renderTable();
-    });
+    renderTabs();
     renderTable();
 
     view.querySelector("#add-user-btn").onclick = () => {

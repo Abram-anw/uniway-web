@@ -45,7 +45,10 @@ const crudPage = (view, cfg) => {
         ...cfg.columns,
         {
           title: "إجراءات",
-          render: (r) => `<div style="display:flex;gap:6px;white-space:nowrap"><button class="btn ghost" type="button" data-crud-edit="${esc(r[cfg.idKey])}">تعديل</button><button class="btn danger" type="button" data-crud-del="${esc(r[cfg.idKey])}">حذف</button></div>`,
+          render: (r) => {
+            if (cfg.rowActions) return cfg.rowActions(r);
+            return `<div style="display:flex;gap:6px;white-space:nowrap"><button class="btn ghost" type="button" data-crud-edit="${esc(r[cfg.idKey])}">تعديل</button><button class="btn danger" type="button" data-crud-del="${esc(r[cfg.idKey])}">حذف</button></div>`;
+          },
         },
       ],
       rows,
@@ -79,10 +82,11 @@ const crudPage = (view, cfg) => {
     const fieldsHtml = cfg.fields.map((f) => {
       let inner;
       const dir = f.dir ? ` dir="${f.dir}"` : "";
+      const af = f.autofocus ? " autofocus" : "";
       if (f.type === "select") inner = `<div id="f-${f.key}"></div>`;
-      else if (f.type === "textarea") inner = `<textarea class="input" id="f-${f.key}" rows="3"${dir}></textarea>`;
+      else if (f.type === "textarea") inner = `<textarea class="input" id="f-${f.key}" rows="3"${dir}${af} placeholder="${f.placeholder || ""}"></textarea>`;
       else if (f.type === "checkbox") inner = chk(`id="f-${f.key}"`);
-      else inner = `<input class="input" id="f-${f.key}" type="${f.type === "number" ? "number" : "text"}"${f.min != null ? ` min="${f.min}"` : ""}${f.max != null ? ` max="${f.max}"` : ""}${dir} placeholder="${f.placeholder || ""}">`;
+      else inner = `<input class="input" id="f-${f.key}" type="${f.type === "number" ? "number" : "text"}"${f.min != null ? ` min="${f.min}"` : ""}${f.max != null ? ` max="${f.max}"` : ""}${dir}${af} placeholder="${f.placeholder || ""}">`;
       const lockHint = isEdit && f.readOnlyOnEdit && !f.hint ? "هذا الحقل لا يمكن تغييره بعد الإنشاء." : "";
       return field(f.label, inner + (f.hint || lockHint ? `<div class="h">${f.hint || lockHint}</div>` : ""), f.key);
     }).join("");

@@ -80,7 +80,7 @@ const CRUD_PAGES = {
   // ── الإعلانات الجامعية ──
   announcements: {
     title: "الإعلانات الجامعية",
-    subtitle: "إدارة الإعلانات — إعلانات المقررات تظهر في شاشة المقرر لدى الدكتور والطلاب",
+    subtitle: "إدارة الإعلانات — إعلانات المقررات تظهر في شاشة المقرر لدى الدكاترة والطلاب",
     store: Catalog.announcements,
     idKey: "id",
     rowLabel: (r) => r.title,
@@ -88,13 +88,22 @@ const CRUD_PAGES = {
       { title: "العنوان", render: (r) => `<b>${esc(r.title)}</b>` },
       { title: "المحتوى", render: (r) => esc(excerpt(r.body)) },
       { title: "المقرر", render: (r) => (r.course ? badge(r.course, "blue") : badge("عامة", "gray")) },
+      { title: "منشئ الإعلان", render: (r) => badge(r.creatorName || (r.creatorRole === "admin" ? "أدمن" : r.creatorRole === "affairs" ? "شئون الطلاب" : r.creatorRole === "doctor" ? "دكتور" : null) || r.createdBy || "—", "gray") },
       { title: "تاريخ النشر", render: (r) => esc(r.at || "—") },
     ],
+    rowActions: (r) => {
+      const me = typeof Auth !== "undefined" && typeof Auth.current === "function" ? Auth.current() : null;
+      // الأدمن يمكنه تعديل/حذف أي إعلان؛ بقية المستخدمين يملكون ذلك لإعلاناتهم فقط
+      const canManage = me && (me.role === "admin" || String(me.code) === String(r.createdBy));
+      if (!canManage) {
+        return `<div style="display:flex;gap:6px;white-space:nowrap"><span class="btn ghost" style="opacity:.5;cursor:not-allowed;pointer-events:none;color:var(--mut)" title="لا يمكنك تعديل أو حذف إعلان لم تنشئه">تعديل</span><span class="btn danger" style="opacity:.5;cursor:not-allowed;pointer-events:none;color:var(--mut)" title="لا يمكنك تعديل أو حذف إعلان لم تنشئه">حذف</span></div>`;
+      }
+      return `<div style="display:flex;gap:6px;white-space:nowrap"><button class="btn ghost" type="button" data-crud-edit="${esc(r.id)}">تعديل</button><button class="btn danger" type="button" data-crud-del="${esc(r.id)}">حذف</button></div>`;
+    },
     fields: [
-      { key: "title", label: "عنوان الإعلان", type: "text", required: true },
-      { key: "body", label: "محتوى الإعلان", type: "textarea", required: true },
+      { key: "title", label: "عنوان الإعلان", type: "text", required: true, autofocus: true, placeholder: "مثال: موعد اختبار الميدتيرم" },
+      { key: "body", label: "محتوى الإعلان", type: "textarea", required: true, placeholder: "اكتب نص الإعلان هنا..." },
       { key: "at", label: "تاريخ النشر", type: "text", required: true, placeholder: "مثال: 15 أكتوبر 2026" },
-      { key: "course", label: "المقرر (اختياري)", type: "select", options: () => [{ value: "", label: "عامة (بدون مقرر)" }, ...(typeof courseCatalog !== "undefined" ? courseCatalog.map((c) => ({ value: c.code, label: `${c.code} – ${c.name}` })) : [])], placeholder: "عامة (بدون مقرر)" },
     ],
     search: { placeholder: "ابحث بالعنوان أو المحتوى...", test: (r, q) => `${r.title} ${r.body}`.toLowerCase().includes(q.toLowerCase()) },
   },
