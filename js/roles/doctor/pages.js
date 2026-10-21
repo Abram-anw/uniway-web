@@ -724,7 +724,7 @@ function chatsPage(view, [id]) {
     return;
   }
   pane.innerHTML = `<div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center"><span class="avatar">${stu.name[0]}</span><div style="flex:1"><b>${stu.name}</b><div style="font-size:12px;color:var(--mut)">${stu.id} · سياق المقرر: ${cname(stu.course)}</div></div><a class="btn ghost menu" href="chats.html">القائمة</a></div>
-    <div class="scroll" id="msgs"></div><div class="compose"><input type="file" hidden id="f"><button class="btn ghost" id="clip" aria-label="إرفاق ملف">${icon("clip")}</button><input class="input" id="txt" placeholder="اكتب ردك..."><button class="btn primary" id="snd" aria-label="إرسال" disabled>${icon("send")}</button></div>`;
+    <div class="scroll" id="msgs"></div><div class="compose"><input type="file" hidden id="f"><button class="btn ghost" id="clip" aria-label="إرفاق ملف">${icon("clip")}</button><input class="input" id="txt" type="text" autocomplete="off" aria-label="اكتب ردك" placeholder="اكتب ردك..."><button class="btn primary" id="snd" aria-label="إرسال" disabled>${icon("send")}</button></div>`;
   const msgs = $("#msgs", pane),
     txt = $("#txt", pane);
   const draw = () => {
@@ -745,7 +745,12 @@ function chatsPage(view, [id]) {
     draw();
   };
   txt.oninput = () => ($("#snd", pane).disabled = !txt.value.trim());
-  txt.onkeydown = (e) => e.key === "Enter" && send();
+  txt.onkeydown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      send();
+    }
+  };
   $("#snd", pane).onclick = () => send();
   $("#clip", pane).onclick = () => $("#f", pane).click();
   $("#f", pane).onchange = (e) => {

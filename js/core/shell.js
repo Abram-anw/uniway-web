@@ -1,3 +1,38 @@
+function accountNotificationSeeds(user) {
+  const items = [];
+  if (user.role === "doctor") {
+    (typeof courses === "undefined" ? [] : courses).filter(course => !course.graded).forEach(course => {
+      items.push({ id: `grade-${course.code}`, title: "مقرر يحتاج رفع الدرجات", body: `${course.name} (${course.code}) لم تُرفع درجاته بعد.`, href: "grades.html" });
+    });
+    (typeof threads === "undefined" ? [] : threads).filter(thread => thread.unread).forEach(thread => {
+      const student = typeof students === "undefined" ? null : students.find(item => item.id === thread.sid);
+      if (!student) return;
+      items.push({ id: `chat-${thread.sid}`, title: `رسالة جديدة من ${student.name}`, body: thread.msgs[thread.msgs.length - 1]?.text || "لديك رسالة جديدة.", href: `chats.html?id=${encodeURIComponent(thread.sid)}` });
+    });
+    (typeof announcements === "undefined" ? [] : announcements)
+      .filter(item => !item.course || courses.some(course => course.code === item.course))
+      .forEach(item => items.push({ id: `announcement-${item.id}`, title: item.title, body: item.body, href: "courses.html" }));
+  } else if (user.role === "affairs") {
+    (typeof studentRequests === "undefined" ? [] : studentRequests).filter(request => request.status === "pending").forEach(request => {
+      items.push({ id: `request-${request.id}`, title: "طلب جديد يحتاج المراجعة", body: `${request.category} — ${request.studentName}`, href: `request-detail.html?id=${encodeURIComponent(request.id)}` });
+    });
+    (typeof gradeAppeals === "undefined" ? [] : gradeAppeals)
+      .filter(appeal => ["new", "under_review", "missing_info", "needs_info"].includes(appeal.status))
+      .forEach(appeal => items.push({ id: `appeal-${appeal.id}`, title: "تظلم درجات قيد المتابعة", body: `${appeal.courseName || appeal.course || "تظلم درجات"} — ${appeal.studentName || ""}`, href: `grade-appeal-detail.html?id=${encodeURIComponent(appeal.id)}` }));
+    (typeof threads === "undefined" ? [] : threads).filter(thread => thread.unread).forEach(thread => {
+      const student = typeof students === "undefined" ? null : students.find(item => item.id === thread.sid);
+      if (!student) return;
+      items.push({ id: `chat-${thread.sid}`, title: `رسالة جديدة من ${student.name}`, body: thread.msgs[thread.msgs.length - 1]?.text || "لديك رسالة جديدة.", href: `conversations.html?id=${encodeURIComponent(thread.sid)}` });
+    });
+  } else if (user.role === "admin") {
+    (typeof announcements === "undefined" ? [] : announcements).forEach(item => {
+      items.push({ id: `announcement-${item.id}`, title: item.title, body: `إعلان جامعي جديد: ${item.body}`, href: "announcements.html" });
+    });
+    items.push({ id: "system-users", title: "ملخص المستخدمين", body: `عدد الحسابات المسجلة في النظام: ${Auth.getUsers().length}.`, href: "users.html" });
+  }
+  return items.map(item => ({ ...item, at: "اليوم" }));
+}
+
 // ===== سلوك الشيل المشترك لصفحات الأدوار (القائمة الجانبية، المستخدم، الخروج) =====
 (() => {
   const user = Auth.current();
@@ -60,12 +95,89 @@
   if (avatar) {
     avatar.textContent = user.short || user.name[0] || "؟";
     avatar.title = user.name;
+    const profileHref = `../${user.role}/profile.html`;
+    if (avatar.tagName === "A") {
+      avatar.href = profileHref;
+    } else {
+      const profileLink = document.createElement("a");
+      profileLink.className = avatar.className;
+      profileLink.id = avatar.id;
+      profileLink.href = profileHref;
+      profileLink.setAttribute("aria-label", "الملف الشخصي");
+      profileLink.title = user.name;
+      profileLink.textContent = avatar.textContent;
+      avatar.replaceWith(profileLink);
+    }
   }
   const nameEl = document.getElementById("user-name");
   if (nameEl) nameEl.textContent = user.name;
 
-  const dot = document.getElementById("dot");
-  if (dot) dot.style.display = user.role === "doctor" && unreadTotal() ? "" : "none";
+  const notificationsKey = `uniway_notifications_${user.code}`;
+  const notificationSeeds = accountNotificationSeeds(user);
+  const savedNotifications = JSON.parse(localStorage.getItem(notificationsKey) || "[]");
+  const savedById = new Map(savedNotifications.map(item => [item.id, item]));
+  const notifications = notificationSeeds.map(item => ({ ...item, read: savedById.has(item.id) && !!savedById.get(item.id).read }));
+  const notificationsHref = `../${user.role}/notifications.html`;
+  const persistNotifications = () => localStorage.setItem(notificationsKey, JSON.stringify(notifications));
+  const notificationButtons = document.querySelectorAll('.top button[aria-label="الإشعارات"]');
+  notificationButtons.forEach((button, index) => {
+    const widget = document.createElement("div");
+    widget.className = "notification-widget";
+    widget.innerHTML = `
+      <button class="${button.className}" type="button" aria-label="الإشعارات" aria-expanded="false" aria-controls="notification-panel-${index}" title="الإشعارات">
+        ${button.innerHTML}
+      </button>
+      <section class="notification-panel" id="notification-panel-${index}" aria-label="الإشعارات" hidden></section>`;
+    button.replaceWith(widget);
+    const toggle = widget.querySelector("button");
+    const panel = widget.querySelector(".notification-panel");
+
+    const renderPanel = () => {
+      const unreadCount = notifications.filter(item => !item.read).length;
+      const preview = notifications.slice(0, 5);
+      panel.innerHTML = `
+        <header class="notification-panel-head"><b>الإشعارات</b><span>${unreadCount ? `${unreadCount} جديدة` : "لا توجد جديدة"}</span></header>
+        <div class="notification-panel-list">${preview.length ? preview.map((item, itemIndex) => `
+          <a class="notification-preview ${item.read ? "" : "unread"}" href="../${user.role}/${esc(item.href)}" data-notification-index="${itemIndex}">
+            <span class="notification-mark" aria-hidden="true"></span>
+            <span class="notification-preview-copy"><b>${esc(item.title)}</b><small>${esc(item.body)}</small></span>
+          </a>`).join("") : `<div class="notification-panel-empty">لا توجد إشعارات حاليًا</div>`}</div>
+        <footer class="notification-panel-foot"><a href="${notificationsHref}">عرض كل الإشعارات</a></footer>`;
+      panel.querySelectorAll("[data-notification-index]").forEach(link => {
+        link.addEventListener("click", () => {
+          notifications[Number(link.dataset.notificationIndex)].read = true;
+          persistNotifications();
+        });
+      });
+    };
+
+    renderPanel();
+    toggle.addEventListener("click", event => {
+      event.stopPropagation();
+      const open = toggle.getAttribute("aria-expanded") === "true";
+      document.querySelectorAll(".notification-panel").forEach(otherPanel => { otherPanel.hidden = true; });
+      document.querySelectorAll('.notification-widget button[aria-expanded="true"]').forEach(otherButton => otherButton.setAttribute("aria-expanded", "false"));
+      panel.hidden = open;
+      toggle.setAttribute("aria-expanded", String(!open));
+    });
+    panel.addEventListener("click", event => event.stopPropagation());
+  });
+
+  const updateNotificationIndicators = () => {
+    const unread = notifications.filter(item => !item.read).length;
+    document.querySelectorAll("#dot").forEach(dot => { dot.style.display = unread ? "" : "none"; });
+  };
+  persistNotifications();
+  updateNotificationIndicators();
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".notification-panel").forEach(panel => { panel.hidden = true; });
+    document.querySelectorAll(".notification-widget button[aria-expanded]").forEach(button => button.setAttribute("aria-expanded", "false"));
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key !== "Escape") return;
+    document.querySelectorAll(".notification-panel").forEach(panel => { panel.hidden = true; });
+    document.querySelectorAll(".notification-widget button[aria-expanded]").forEach(button => button.setAttribute("aria-expanded", "false"));
+  });
 
   const logout = document.getElementById("logout");
   if (logout) {

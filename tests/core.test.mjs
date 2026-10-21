@@ -83,6 +83,8 @@ loadSources();
   ok(Auth.canAs("affairs", "unknown.perm") === false, "canAs: صلاحية غير معروفة = مرفوضة لغير الأدمن");
   ok(Auth.pagePermission("students.html") === "students.view", "خريطة الصفحات: students.html → students.view");
   ok(Auth.pagePermission("lectures.html") === "lectures.upload", "خريطة الصفحات: lectures.html → lectures.upload");
+  ok(Auth.pagePermission("courses.html", "doctor") === null, "صفحة مقررات الدكتور لا تتطلب صلاحية إدارة كتالوج الأدمن");
+  ok(Auth.pagePermission("courses.html", "admin") === "settings.manage", "صفحة كتالوج الأدمن تحتفظ بصلاحية إدارة الإعدادات");
 }
 
 section("حفظ الصلاحيات والتحقق من الصلاحيات (backend)");

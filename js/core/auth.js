@@ -442,6 +442,7 @@ const Auth = (() => {
     /** خريطة الصفحات بالصلاحيات المطلوبة — تُستخدم لإخفاء روابط غير المتاحة */
     pagePermission(file, role) {
       if (role && PAGE_PERMISSIONS_DIR[role + "/" + file]) return PAGE_PERMISSIONS_DIR[role + "/" + file];
+      if (role === "doctor" && file === "courses.html") return null;
       return PAGE_PERMISSIONS[file] || null;
     },
   };

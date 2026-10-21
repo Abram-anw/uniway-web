@@ -25,10 +25,11 @@ js/
          shell.js           # القائمة الجانبية والمستخدم والخروج
          data.js, ui.js     # بيانات تجريبية ومكونات مشتركة
   roles/ doctor|affairs|admin/pages.js   # منطق صفحات كل دور
-doctor/   dashboard, courses, course-add, course-detail, grades, lectures, chats, profile
+doctor/   dashboard, courses, course-add, course-detail, grades, lectures, chats, profile, notifications
 affairs/  dashboard, requests, request-detail, admissions, admission-detail, grade-appeals,
-          grade-appeal-detail, students, student-detail, documents, conversations, military-education
-admin/    dashboard, users
+          grade-appeal-detail, students, student-detail, documents, conversations, military-education,
+          profile, notifications
+admin/    dashboard, users, profile, notifications
 ```
 
 الصفحات اللي فيها id بتاخده من الرابط: `course-detail.html?code=COMP301`، `student-detail.html?id=...`.

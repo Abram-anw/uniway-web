@@ -326,7 +326,7 @@ const renderGradeAppealDetailPage = (view, [id]) => {
           `).join("") : `<div class="state" style="padding:20px 10px">${empty("لا توجد رسائل", "ابدأ مراسلة الطالب في هذا الاستئناف.")}</div>`}
         </div>
         <div class="compose">
-          <input class="input" id="appeal-chat-msg" placeholder="اكتب رسالة للطالب..." />
+          <input class="input" id="appeal-chat-msg" type="text" autocomplete="off" aria-label="اكتب رسالة للطالب" placeholder="اكتب رسالة للطالب..." />
           <button class="btn primary" id="send-appeal-msg">إرسال</button>
         </div>
       </div>
@@ -399,6 +399,12 @@ const renderGradeAppealDetailPage = (view, [id]) => {
     });
     $('#appeal-chat-msg', view).value = "";
     renderGradeAppealDetailPage(view, [appeal.id]);
+  };
+  $('#appeal-chat-msg', view).onkeydown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      $('#send-appeal-msg', view).click();
+    }
   };
 };
 
@@ -598,7 +604,7 @@ const affairsStudentConversationsPage = (view, [id]) => {
   }
 
   pane.innerHTML = `<div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center"><span class="avatar">${stu.name[0]}</span><div style="flex:1"><b>${stu.name}</b><div style="font-size:12px;color:var(--mut)">${stu.id} · البريد: ${esc(stu.email)}</div></div><a class="btn ghost menu" href="conversations.html">القائمة</a></div>
-    <div class="scroll" id="msgs"></div><div class="compose"><input class="input" id="txt" placeholder="اكتب ردك..."><button class="btn primary" id="snd" aria-label="إرسال">${icon("send")}</button></div>`;
+    <div class="scroll" id="msgs"></div><div class="compose"><input class="input" id="txt" type="text" autocomplete="off" aria-label="اكتب ردك" placeholder="اكتب ردك..."><button class="btn primary" id="snd" aria-label="إرسال">${icon("send")}</button></div>`;
 
   const msgs = $('#msgs', pane);
   const txt = $('#txt', pane);
@@ -621,7 +627,12 @@ const affairsStudentConversationsPage = (view, [id]) => {
   txt.oninput = () => {
     $('#snd', pane).disabled = !txt.value.trim();
   };
-  txt.onkeydown = (event) => event.key === "Enter" && send();
+  txt.onkeydown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      send();
+    }
+  };
   $('#snd', pane).onclick = send;
   $('#snd', pane).disabled = true;
   draw();
@@ -1267,7 +1278,7 @@ const affairsRequestDetailPage = (view, [requestId]) => {
           <h3>الدردشة</h3>
           <div class="scroll" style="height:260px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);margin-bottom:12px">${chatMessages}</div>
           <div class="compose">
-            <input class="input" id="chat-message" placeholder="اكتب رسالة للطالب..." />
+            <input class="input" id="chat-message" type="text" autocomplete="off" aria-label="اكتب رسالة للطالب" placeholder="اكتب رسالة للطالب..." />
             <button class="btn primary" id="send-message">إرسال</button>
           </div>
         </div>
@@ -1331,6 +1342,12 @@ const affairsRequestDetailPage = (view, [requestId]) => {
       addTimelineEvent(request, "تمت إضافة رسالة للمراجعة", "موظف شؤون الطلاب");
       chatInput.value = "";
       render();
+    };
+    chatInput.onkeydown = (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage.click();
+      }
     };
 
     view.querySelectorAll("[data-doc-preview]").forEach((button) => {
