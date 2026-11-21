@@ -1,0 +1,101 @@
+{
+  "_comment": "المصدر الموحّد (البذرة) لأنواع طلبات شؤون الطلاب ومستنداتها المطلوبة. تديره شاشة الأدمن (إدارة أنواع الطلبات والمستندات المطلوبة) في تطبيق الويب عبر خدمة RequestTypes (js/core/requests-config.js) التي تقرأ هذا الملف كبذرة أولية ثم تُحضر التعديلات في localStorage (مفتاح uniway_request_types). يقرأ تطبيق الطالب (شاشة متطلبات الطلب M8، student/requirements.html) نفس المصدر عبر خدمة RequestTypes نفسها، ف어떤 تعديل يجريه الأدمن يظهر للطالب عند إعادة تحميل شاشته بدون إعادة تشغيل التطبيق. الحقول: kind ∈ file|text|select، و options تُستخدم فقط عند kind=select، والترتيب داخل requirements هو ترتيب العرض.",
+  "version": 1,
+  "requestTypes": [
+    {
+      "id": "enrollment",
+      "name": "إفادة قيد",
+      "description": "إفادة رسمية تثبت قيدك بالجامعة",
+      "iconName": "file",
+      "requirements": [
+        { "id": "enrollment-r1", "name": "صورة بطاقة الرقم القومي", "mandatory": true, "hint": "صورة واضحة للوجهين", "kind": "file", "options": null },
+        { "id": "enrollment-r2", "name": "إيصال سداد مصروفات الفصل الحالي", "mandatory": true, "hint": "يجب أن يظهر رقم الطالب وتاريخ السداد", "kind": "file", "options": null },
+        { "id": "enrollment-r3", "name": "جهة تقديم الإفادة", "mandatory": true, "hint": "اكتب اسم الجهة الموجه إليها الإفادة", "kind": "text", "options": null }
+      ]
+    },
+    {
+      "id": "transcript",
+      "name": "كشف درجات رسمي",
+      "description": "كشف معتمد بجميع المقررات والدرجات",
+      "iconName": "star",
+      "requirements": [
+        { "id": "transcript-r1", "name": "صورة بطاقة الرقم القومي", "mandatory": true, "hint": "صورة واضحة للوجهين", "kind": "file", "options": null },
+        { "id": "transcript-r2", "name": "إيصال سداد رسوم الكشف", "mandatory": true, "hint": "إيصال حديث وواضح", "kind": "file", "options": null },
+        { "id": "transcript-r3", "name": "صورة شخصية حديثة", "mandatory": false, "hint": "خلفية بيضاء وبدون تعديلات", "kind": "file", "options": null }
+      ]
+    },
+    {
+      "id": "graduation",
+      "name": "طلب شهادة التخرج",
+      "description": "إصدار شهادة التخرج الرسمية",
+      "iconName": "award",
+      "requirements": [
+        { "id": "graduation-r1", "name": "صورة بطاقة الرقم القومي", "mandatory": true, "hint": "صورة واضحة للوجهين", "kind": "file", "options": null },
+        { "id": "graduation-r2", "name": "صورة شخصية حديثة بخلفية بيضاء", "mandatory": true, "hint": "صورة رسمية حديثة", "kind": "file", "options": null },
+        { "id": "graduation-r3", "name": "إيصال سداد رسوم الشهادة", "mandatory": true, "hint": "إيصال واضح باسم الطالب", "kind": "file", "options": null },
+        { "id": "graduation-r4", "name": "استمارة إخلاء الطرف", "mandatory": true, "hint": "معتمدة من جميع الجهات", "kind": "file", "options": null },
+        { "id": "graduation-r5", "name": "شهادة إتمام التربية العسكرية", "mandatory": true, "hint": "للطلاب المطلوب منهم أداؤها", "kind": "file", "options": null },
+        { "id": "graduation-r6", "name": "صورة شهادة الثانوية العامة", "mandatory": true, "hint": "نسخة كاملة وواضحة", "kind": "file", "options": null }
+      ]
+    },
+    {
+      "id": "suspend",
+      "name": "إيقاف قيد",
+      "description": "إيقاف الدراسة مؤقتًا وفق اللوائح",
+      "iconName": "clock",
+      "requirements": [
+        { "id": "suspend-r1", "name": "طلب إيقاف القيد مكتوب وموقّع", "mandatory": true, "hint": "موضح به المدة والسبب", "kind": "file", "options": null },
+        { "id": "suspend-r2", "name": "صورة بطاقة الرقم القومي للطالب", "mandatory": true, "hint": "صورة واضحة للوجهين", "kind": "file", "options": null },
+        { "id": "suspend-r3", "name": "صورة بطاقة ولي الأمر", "mandatory": true, "hint": "صورة واضحة للوجهين", "kind": "file", "options": null },
+        { "id": "suspend-r4", "name": "موافقة ولي الأمر", "mandatory": true, "hint": "موافقة مكتوبة وموقعة", "kind": "file", "options": null },
+        { "id": "suspend-r5", "name": "مستند يثبت سبب الإيقاف", "mandatory": false, "hint": "تقرير طبي أو مستند رسمي داعم", "kind": "file", "options": null }
+      ]
+    },
+    {
+      "id": "transfer",
+      "name": "تحويل بين الأقسام",
+      "description": "طلب الانتقال إلى قسم أكاديمي آخر",
+      "iconName": "layers",
+      "requirements": [
+        { "id": "transfer-r1", "name": "نموذج طلب التحويل", "mandatory": true, "hint": "مكتمل البيانات وموقّع", "kind": "file", "options": null },
+        { "id": "transfer-r2", "name": "صورة بطاقة الرقم القومي", "mandatory": true, "hint": "صورة واضحة للوجهين", "kind": "file", "options": null },
+        { "id": "transfer-r3", "name": "كشف درجات حديث", "mandatory": true, "hint": "صادر خلال الفصل الحالي", "kind": "file", "options": null },
+        { "id": "transfer-r4", "name": "موافقة القسمين", "mandatory": false, "hint": "موافقة القسم الحالي والقسم المطلوب", "kind": "file", "options": null }
+      ]
+    },
+    {
+      "id": "replacement",
+      "name": "بدل فاقد لبطاقة الجامعة",
+      "description": "استخراج بطاقة جامعية بديلة",
+      "iconName": "idCard",
+      "requirements": [
+        { "id": "replacement-r1", "name": "صورة محضر إثبات الفقد", "mandatory": true, "hint": "محضر رسمي واضح البيانات", "kind": "file", "options": null },
+        { "id": "replacement-r2", "name": "صورة بطاقة الرقم القومي", "mandatory": true, "hint": "صورة واضحة للوجهين", "kind": "file", "options": null },
+        { "id": "replacement-r3", "name": "صورة شخصية حديثة", "mandatory": true, "hint": "خلفية بيضاء", "kind": "file", "options": null },
+        { "id": "replacement-r4", "name": "إيصال سداد رسوم البدل", "mandatory": true, "hint": "إيصال حديث باسم الطالب", "kind": "file", "options": null }
+      ]
+    },
+    {
+      "id": "exam-excuse",
+      "name": "إعذار عن امتحان",
+      "description": "تقديم عذر رسمي عن غياب امتحان",
+      "iconName": "alert",
+      "requirements": [
+        { "id": "exam-excuse-r1", "name": "تقرير طبي معتمد أو مستند العذر", "mandatory": true, "hint": "صادر من جهة رسمية ومعتمدة", "kind": "file", "options": null },
+        { "id": "exam-excuse-r2", "name": "صورة بطاقة الرقم القومي", "mandatory": true, "hint": "صورة واضحة للوجهين", "kind": "file", "options": null },
+        { "id": "exam-excuse-r3", "name": "المقرر المراد الإعذار عنه", "mandatory": true, "hint": "اختر المقرر من مقرراتك المسجلة", "kind": "select", "options": ["هندسة البرمجيات CS401", "شبكات الحاسب CS415", "الذكاء الاصطناعي CS440"] },
+        { "id": "exam-excuse-r4", "name": "سبب الإعذار", "mandatory": true, "hint": "اكتب سبب الغياب باختصار", "kind": "text", "options": null }
+      ]
+    },
+    {
+      "id": "other",
+      "name": "أخرى",
+      "description": "طلب إداري غير مدرج في القائمة",
+      "iconName": "plusCircle",
+      "requirements": [
+        { "id": "other-r1", "name": "وصف الطلب", "mandatory": true, "hint": "اشرح طلبك بوضوح وتفصيل", "kind": "text", "options": null },
+        { "id": "other-r2", "name": "مرفقات داعمة", "mandatory": false, "hint": "أي مستندات تساعد في مراجعة الطلب", "kind": "file", "options": null }
+      ]
+    }
+  ]
+}
