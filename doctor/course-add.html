@@ -10,7 +10,7 @@
     <!-- حماية الصفحة: لازم المستخدم يكون داخل بحساب نفس الدور -->
     <script src="../js/core/auth.js"></script>
     <script src="../js/core/settings.js"></script>
-    <script>Auth.requireRole("doctor");</script>
+    <script>Auth.requireRole("doctor", "lectures.upload");</script>
   </head>
   <body data-role="doctor">
     <div class="app">

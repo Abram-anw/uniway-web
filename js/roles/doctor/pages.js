@@ -255,6 +255,7 @@ const GTYPES = [
   { value: "mid", label: "ميدتيرم" },
   { value: "work", label: "أعمال سنة" },
   { value: "ORL", label: "شفوي" },
+  { value: "fin", label: "الفاينل" },
 ];
 const GMAX = { mid: 20, work: 30, fin: 50 };
 function gradesPage(view, _p, q) {
@@ -599,13 +600,17 @@ function doctorProfilePage(view) {
     (total, course) => total + course.students,
     0,
   );
+  const currentUser = typeof Auth !== "undefined" ? Auth.current() : null;
+  const profileName = esc(currentUser?.name || "د. سارة القحطاني");
+  const profileDepartment = esc(currentUser?.department || "علوم الحاسب");
+  const profileInitial = esc(currentUser?.short || "س");
 
   view.innerHTML = `
     <section class="profile-page" aria-label="الملف الشخصي للدكتور">
       <header class="profile-hero">
-        <div class="profile-avatar" aria-hidden="true">س</div>
-        <h1>د. سارة القحطاني</h1>
-        <p>قسم علوم الحاسب · أستاذ مساعد</p>
+        <div class="profile-avatar" aria-hidden="true">${profileInitial}</div>
+        <h1>${profileName}</h1>
+        <p>قسم ${profileDepartment} · ${esc(currentUser?.roleLabel || "دكتور")}</p>
         <div class="profile-stats">
           <div><b>F-1023</b><span>الرقم الوظيفي</span></div>
           <div><b>${courses.length}</b><span>المقررات</span></div>
@@ -720,9 +725,9 @@ function doctorProfilePage(view) {
     modal(
       `<h2>إعدادات الحساب</h2>
        <div class="list">
-         <div class="li"><span class="grow"><b>الاسم</b><small>د. سارة القحطاني</small></span></div>
-         <div class="li"><span class="grow"><b>القسم</b><small>علوم الحاسب</small></span></div>
-         <div class="li"><span class="grow"><b>المسمى الوظيفي</b><small>أستاذ مساعد</small></span></div>
+        <div class="li"><span class="grow"><b>الاسم</b><small>${profileName}</small></span></div>
+        <div class="li"><span class="grow"><b>القسم</b><small>${profileDepartment}</small></span></div>
+        <div class="li"><span class="grow"><b>المسمى الوظيفي</b><small>${esc(currentUser?.roleLabel || "دكتور")}</small></span></div>
        </div>
        <div class="acts"><button class="btn primary ok">إغلاق</button></div>`,
       (dialog, close) => {
@@ -731,6 +736,252 @@ function doctorProfilePage(view) {
     );
 
   $("#profile-logout", view).onclick = () => Auth.logout();
+}
+
+// ---------- السجلات الأكاديمية: مسؤول السجلات الأكاديمية ----------
+const ACADEMIC_RECORDS_KEY = "uniway_academic_records";
+
+const loadAcademicRecords = () => {
+  try {
+    const records = JSON.parse(localStorage.getItem(ACADEMIC_RECORDS_KEY) || "[]");
+    return Array.isArray(records) ? records : [];
+  } catch (_) {
+    return [];
+  }
+};
+
+const saveAcademicRecords = (records) => {
+  localStorage.setItem(ACADEMIC_RECORDS_KEY, JSON.stringify(records));
+};
+
+function academicRecordsPage(view) {
+  let records = loadAcademicRecords();
+
+  const render = () => {
+    records = loadAcademicRecords();
+    view.innerHTML =
+      pageHead(
+        "السجلات الأكاديمية",
+        "رفع واستعراض السجلات الأكاديمية بصيغة PDF",
+        '<button class="btn primary" id="add-academic-record">رفع سجلات PDF</button>',
+      ) +
+      `<div class="grid g2" style="margin-bottom:16px">
+        <div class="card">
+          <h3>رفع سجل أكاديمي PDF</h3>
+          <p style="color:var(--sub);font-size:12px;line-height:1.8">اختر عدة ملفات PDF وحدد بيانات الطالب والسنة والفصل الدراسي للرفع دفعة واحدة.</p>
+          <div id="academic-upload" style="margin-top:12px"></div>
+        </div>
+        <div class="card">
+          <h3>ملخص السجلات</h3>
+          <div class="grid g3" style="margin-top:12px">
+            ${stat("إجمالي السجلات", records.length, "file", "blue")}
+            ${stat("الطلاب", new Set(records.map((record) => record.studentCode)).size, "users", "green")}
+            ${stat("ملفات PDF", records.filter((record) => (record.fileName || "").toLowerCase().endsWith(".pdf")).length, "file", "amber")}
+          </div>
+        </div>
+      </div>
+      <div style="height:16px"></div>
+      <div class="card"><h3>السجلات المحفوظة</h3><div id="academic-table"></div></div>`;
+
+    createUpload($("#academic-upload", view), {
+      exts: ["pdf"],
+      maxMB: 10,
+      multiple: true,
+      onPick: (files) => {
+        if (files?.length) openAcademicRecordModal(null, () => render(), files);
+      },
+    });
+
+    $("#add-academic-record", view).onclick = () => openAcademicRecordModal(null, () => render());
+    renderAcademicTable();
+  };
+
+  const renderAcademicTable = () => {
+    const host = $("#academic-table", view);
+    if (!host) return;
+    createTable(host, {
+      rows: records,
+      pageSize: 10,
+      search: {
+        placeholder: "ابحث بالكود أو اسم الطالب أو اسم الملف...",
+        test: (record, query) =>
+          `${record.studentCode} ${record.studentName} ${record.fileName}`
+            .toLowerCase()
+            .includes(query.toLowerCase()),
+      },
+      cols: [
+        { title: "الطالب", render: (record) => `<b>${esc(record.studentName)}</b><br><small dir="ltr">${esc(record.studentCode)}</small>` },
+        { title: "ملف السجل", render: (record) => `<b>${esc(record.fileName || "سجل أكاديمي.pdf")}</b><br><small>${esc(record.fileSize || "")}</small>` },
+        { title: "السنة والفصل", render: (record) => `${esc(record.academicYear)} · ${esc(record.semester)}` },
+        { title: "الحالة", render: (record) => badge(record.status || "مسجل", record.status === "ناجح" ? "green" : "blue") },
+        { title: "الإجراءات", render: (record) => `<button class="btn ghost" type="button" data-view-record="${esc(record.id)}">عرض PDF</button> <button class="btn ghost" type="button" data-edit-record="${esc(record.id)}">تعديل</button> <button class="btn ghost" type="button" data-delete-record="${esc(record.id)}" style="color:var(--bad)">حذف</button>` },
+      ],
+      empty: empty("لا توجد سجلات أكاديمية", "ارفع ملف PDF لإضافة سجل أكاديمي."),
+      onRender: (body) => {
+        body.querySelectorAll("[data-view-record]").forEach((button) => {
+          button.onclick = () => {
+            const record = records.find((item) => item.id === button.dataset.viewRecord);
+            if (!record?.fileData) {
+              toast("ملف PDF غير متاح في هذه النسخة التجريبية.", "red");
+              return;
+            }
+            const win = window.open();
+            if (win) {
+              win.document.title = record.fileName || "السجل الأكاديمي";
+              win.document.body.innerHTML = `<iframe title="${esc(record.fileName || "السجل الأكاديمي")}" src="${record.fileData}" style="position:fixed;inset:0;width:100%;height:100%;border:0"></iframe>`;
+            }
+          };
+        });
+        body.querySelectorAll("[data-edit-record]").forEach((button) => {
+          button.onclick = () => {
+            const record = records.find((item) => item.id === button.dataset.editRecord);
+            openAcademicRecordModal(record, () => render());
+          };
+        });
+        body.querySelectorAll("[data-delete-record]").forEach((button) => {
+          button.onclick = () => confirmDlg({
+            title: "حذف السجل الأكاديمي",
+            body: "سيتم حذف هذا السجل نهائيًا من النظام.",
+            label: "حذف",
+            danger: true,
+            onOk: () => {
+              records = records.filter((item) => item.id !== button.dataset.deleteRecord);
+              saveAcademicRecords(records);
+              render();
+              toast("تم حذف السجل.");
+            },
+          });
+        });
+      },
+    });
+  };
+
+  function openAcademicRecordModal(existing, onSaved, pdfFiles = []) {
+    if (!Array.isArray(pdfFiles)) pdfFiles = pdfFiles ? [pdfFiles] : [];
+    const pdfFile = pdfFiles[0] || null;
+    const current = existing || {
+      studentCode: "", studentName: "",
+      academicYear: "", semester: "", status: "مرفوع",
+      fileName: pdfFile?.name || "",
+      fileSize: pdfFile ? `${(pdfFile.size / 1048576).toFixed(2)} MB` : "",
+    };
+    modal(
+      `<h2>${existing ? "تعديل سجل أكاديمي PDF" : "رفع سجل أكاديمي PDF"}</h2>
+       <div class="grid g2">
+        ${field("كود الطالب *", `<input class="input" id="ar-code" dir="ltr" value="${esc(current.studentCode)}">`, "ar-code")}
+        ${field("اسم الطالب *", `<input class="input" id="ar-name" value="${esc(current.studentName)}">`, "ar-name")}
+        ${field("السنة الدراسية *", `<input class="input" id="ar-year" value="${esc(current.academicYear)}">`, "ar-year")}
+        ${field("الفصل الدراسي *", `<input class="input" id="ar-semester" value="${esc(current.semester)}">`, "ar-semester")}
+        ${field("الحالة", `<input class="input" id="ar-status" value="${esc(current.status)}">`, "ar-status")}
+       </div>
+       ${pdfFiles.length || existing?.fileName ? `<div class="field"><label>ملفات PDF</label><div class="box" style="justify-content:flex-start;height:auto;min-height:50px;flex-wrap:wrap"><b>${esc(pdfFiles.length ? pdfFiles.map(file => file.name).join(" · ") : existing.fileName)}</b></div></div>` : ""}
+       ${!existing && !pdfFiles.length ? '<div class="field"><label>ملفات PDF *</label><input class="input" id="ar-pdf" type="file" accept=".pdf,application/pdf" multiple></div>' : ""}
+       <div class="acts"><button class="btn primary" id="ar-save">${existing ? "حفظ التعديل" : "رفع السجل"}</button><button class="btn ghost" id="ar-cancel">إلغاء</button></div>`,
+      (dialog, close) => {
+        $("#ar-cancel", dialog).onclick = close;
+        $("#ar-save", dialog).onclick = () => {
+          const values = {
+            studentCode: $("#ar-code", dialog).value.trim().toUpperCase(),
+            studentName: $("#ar-name", dialog).value.trim(),
+            academicYear: $("#ar-year", dialog).value.trim(),
+            semester: $("#ar-semester", dialog).value.trim(),
+            status: $("#ar-status", dialog).value.trim() || "مرفوع",
+          };
+          if (!values.studentCode || !values.studentName || !values.academicYear || !values.semester) {
+            toast("يرجى استكمال كود واسم الطالب والسنة والفصل.", "red");
+            return;
+          }
+          const nativeFiles = $("#ar-pdf", dialog)?.files
+            ? Array.from($("#ar-pdf", dialog).files)
+            : [];
+          const selectedFiles = existing
+            ? []
+            : pdfFiles.length
+              ? pdfFiles
+              : nativeFiles;
+          if (!existing && !selectedFiles.length) {
+            toast("يرجى اختيار ملف PDF للسجل الأكاديمي.", "red");
+            return;
+          }
+          for (const file of selectedFiles) {
+            if (file.type !== "application/pdf" || !file.name.toLowerCase().endsWith(".pdf")) {
+              toast("يجب أن تكون جميع الملفات بصيغة PDF فقط.", "red");
+              return;
+            }
+            if (file.size > 10 * 1048576) {
+              toast(`الملف ${file.name} حجمه أكبر من 10MB.`, "red");
+              return;
+            }
+          }
+          if (existing) {
+            const recordValues = {
+              ...values,
+              updatedAt: new Date().toLocaleString("ar-EG", { dateStyle: "medium", timeStyle: "short" }),
+            };
+            records = records.map((record) => record.id === existing.id ? { ...record, ...recordValues } : record);
+            saveAcademicRecords(records);
+            close();
+            onSaved();
+            toast("تم تعديل السجل بنجاح.");
+            return;
+          }
+
+          let loaded = 0;
+          const newRecords = [];
+          const finishBatch = () => {
+            if (!newRecords.length) {
+              toast("لا توجد ملفات جديدة للرفع.", "red");
+              return;
+            }
+            records = [...newRecords.reverse(), ...records];
+            try {
+              saveAcademicRecords(records);
+            } catch (_) {
+              toast("تعذر حفظ الملفات محليًا بسبب مساحة التخزين. جرّب ملفات أصغر.", "red");
+              return;
+            }
+            close();
+            onSaved();
+            toast(`تم رفع ${newRecords.length} ملف PDF بنجاح.`);
+          };
+          selectedFiles.forEach((file, index) => {
+            const duplicate = records.some((record) =>
+              record.studentCode === values.studentCode &&
+              record.academicYear === values.academicYear &&
+              record.semester === values.semester &&
+              record.fileName === file.name
+            );
+            if (duplicate) {
+              loaded += 1;
+              if (loaded === selectedFiles.length) finishBatch();
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+              newRecords.push({
+                id: `AR-${Date.now()}-${index + 1}`,
+                ...values,
+                fileName: file.name,
+                fileSize: `${(file.size / 1048576).toFixed(2)} MB`,
+                fileData: String(reader.result || ""),
+                updatedAt: new Date().toLocaleString("ar-EG", { dateStyle: "medium", timeStyle: "short" }),
+              });
+              loaded += 1;
+              if (loaded === selectedFiles.length) finishBatch();
+            };
+            reader.onerror = () => {
+              loaded += 1;
+              toast(`تعذر قراءة الملف ${file.name}.`, "red");
+              if (loaded === selectedFiles.length) finishBatch();
+            };
+            reader.readAsDataURL(file);
+          });
+        };
+      },
+    );
+  }
+
+  render();
 }
 
 // ---------- SCRUM-97: مركز محادثات الدكتور ----------

@@ -10,7 +10,7 @@
     <!-- حماية الصفحة: يُسمح بالدخول لأي دور يملك الصلاحية (أدمن، دكتور، إلخ) -->
     <script src="../js/core/auth.js"></script>
     <script src="../js/core/settings.js"></script>
-    <script>Auth.requireAny(["grades.manage"]);</script>
+    <script>Auth.requireRole("doctor", "grades.manage");</script>
   </head>
   <body>
     <div class="app">

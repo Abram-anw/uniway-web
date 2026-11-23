@@ -22,6 +22,8 @@ const yearOptions = () =>
 const ROLE_OPTIONS = [
   { value: "student", label: "طالب" },
   { value: "doctor",  label: "دكتور" },
+  { value: "doctor_admin", label: "دكتور مسؤول السجلات الأكاديمية" },
+  { value: "control", label: "دكتور الكنترول" },
   { value: "affairs", label: "شئون الطلاب" },
   { value: "admin",   label: "أدمن" },
 ];
@@ -34,11 +36,13 @@ const STATUS_OPTIONS = [
 const ROLE_TABS = [
   { id: "student", label: "الطلاب" },
   { id: "doctor",  label: "الدكاترة" },
+  { id: "doctor_admin", label: "مسؤولو السجلات" },
+  { id: "control", label: "الكنترول" },
   { id: "affairs", label: "شئون الطلاب" },
   { id: "admin",   label: "الأدمن" },
 ];
 
-const ROLE_BADGE_TONE = { student: "blue", doctor: "green", affairs: "amber", admin: "red" };
+const ROLE_BADGE_TONE = { student: "blue", doctor: "green", doctor_admin: "purple", control: "amber", affairs: "amber", admin: "red" };
 const STATUS_TONE     = { active: "green", disabled: "gray" };
 const STATUS_LABEL    = { active: "نشط", disabled: "معطّل" };
 
@@ -53,6 +57,8 @@ const adminDashboard = (view) => {
   const users    = Auth.getUsers();
   const students = users.filter(u => u.role === "student");
   const doctors  = users.filter(u => u.role === "doctor");
+  const doctorAdmins = users.filter(u => u.role === "doctor_admin");
+  const controls = users.filter(u => u.role === "control");
   const affairs  = users.filter(u => u.role === "affairs");
   const admins   = users.filter(u => u.role === "admin");
 
@@ -105,6 +111,8 @@ const adminDashboard = (view) => {
   [
     { role: "student", count: students.length,                label: "الطلاب" },
     { role: "doctor",  count: doctors.length,                 label: "الدكاترة" },
+    { role: "doctor_admin", count: doctorAdmins.length,       label: "مسؤولو السجلات الأكاديمية" },
+    { role: "control", count: controls.length,                label: "دكاترة الكنترول" },
     { role: "affairs", count: affairs.length,                 label: "شئون الطلاب" },
     { role: "admin",   count: admins.length,                  label: "الأدمن" },
   ].forEach(r => {
@@ -450,6 +458,22 @@ const adminUsers = (view) => {
         { title: "الإجراءات",         render: u => renderUserActions(u) },
       ],
       doctor: [
+        { title: "الاسم",             render: u => esc(u.name) },
+        { title: "الكود",             render: u => `<b dir="ltr">${esc(u.code)}</b>` },
+        { title: "البريد",            render: u => `<span dir="ltr" style="font-size:12px">${esc(u.email || "—")}</span>` },
+        { title: "القسم",             render: u => esc(u.department || "—") },
+        { title: "الحالة",            render: u => statusBadge(u.status) },
+        { title: "الإجراءات",         render: u => renderUserActions(u) },
+      ],
+      doctor_admin: [
+        { title: "الاسم",             render: u => esc(u.name) },
+        { title: "الكود",             render: u => `<b dir="ltr">${esc(u.code)}</b>` },
+        { title: "البريد",            render: u => `<span dir="ltr" style="font-size:12px">${esc(u.email || "—")}</span>` },
+        { title: "القسم",             render: u => esc(u.department || "—") },
+        { title: "الحالة",            render: u => statusBadge(u.status) },
+        { title: "الإجراءات",         render: u => renderUserActions(u) },
+      ],
+      control: [
         { title: "الاسم",             render: u => esc(u.name) },
         { title: "الكود",             render: u => `<b dir="ltr">${esc(u.code)}</b>` },
         { title: "البريد",            render: u => `<span dir="ltr" style="font-size:12px">${esc(u.email || "—")}</span>` },

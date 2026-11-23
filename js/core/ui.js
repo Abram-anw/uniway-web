@@ -120,24 +120,41 @@ function createTable(el, o) {
 }
 
 function createUpload(el, o) {
-  let file = null, err = '', disabled = !!o.disabled;
-  function choose(f) {
-    if (!f) return;
-    const ext = f.name.split('.').pop().toLowerCase();
-    if (!o.exts.includes(ext)) { err = `نوع الملف غير مدعوم. المسموح: ${o.exts.join(' / ').toUpperCase()}`; return draw(); }
-    if (f.size > o.maxMB * 1048576) { err = `حجم الملف أكبر من ${o.maxMB}MB`; return draw(); }
-    err = ''; file = f; draw(); o.onPick && o.onPick(f);
+  let file = null, files = [], err = '', disabled = !!o.disabled;
+  function choose(selected) {
+    if (!selected) return;
+    const selectedFiles = o.multiple ? Array.from(selected) : [selected];
+    if (!selectedFiles.length) return;
+    for (const f of selectedFiles) {
+      const ext = f.name.split('.').pop().toLowerCase();
+      if (!o.exts.includes(ext)) { err = `نوع الملف غير مدعوم. المسموح: ${o.exts.join(' / ').toUpperCase()}`; return draw(); }
+      if (f.size > o.maxMB * 1048576) { err = `حجم الملف أكبر من ${o.maxMB}MB`; return draw(); }
+    }
+    err = '';
+    files = selectedFiles;
+    file = selectedFiles[0] || null;
+    draw();
+    o.onPick && o.onPick(o.multiple ? files : file);
   }
   function draw() {
-    el.innerHTML = `<div class="drop ${disabled ? 'off' : file ? 'ok' : err ? 'err' : ''}">${icon(file ? 'check' : 'upload', 28)}<div style="font-weight:700;margin:8px 0 2px">${file ? esc(file.name) : 'اسحب الملف هنا أو اختره من جهازك'}</div><div style="font-size:11px;color:var(--mut)">${o.exts.join(' / ').toUpperCase()} · حتى ${o.maxMB}MB</div>
-      <label class="btn outline" style="margin-top:12px;${disabled ? 'opacity:.5;pointer-events:none' : ''}">${file ? 'تغيير الملف' : 'اختيار ملف'}<input type="file" hidden accept="${o.exts.map(e => '.' + e).join(',')}"></label>${file ? '<button type="button" class="btn ghost u-rm" style="margin:12px 8px 0 0">إزالة</button>' : ''}${err ? `<div role="alert" style="color:var(--bad);font-size:12px;margin-top:8px">${err}</div>` : ''}</div>`;
+    const fileLabel = o.multiple && files.length
+      ? `${files.length} ملفات محددة`
+      : file ? esc(file.name) : 'اسحب الملف هنا أو اختره من جهازك';
+    el.innerHTML = `<div class="drop ${disabled ? 'off' : file ? 'ok' : err ? 'err' : ''}">${icon(file ? 'check' : 'upload', 28)}<div style="font-weight:700;margin:8px 0 2px">${fileLabel}</div><div style="font-size:11px;color:var(--mut)">${o.exts.join(' / ').toUpperCase()} · حتى ${o.maxMB}MB${o.multiple ? ' · رفع متعدد' : ''}</div>
+      <label class="btn outline" style="margin-top:12px;${disabled ? 'opacity:.5;pointer-events:none' : ''}">${file ? 'تغيير الملفات' : 'اختيار ملفات'}<input type="file" hidden ${o.multiple ? 'multiple' : ''} accept="${o.exts.map(e => '.' + e).join(',')}"></label>${file ? '<button type="button" class="btn ghost u-rm" style="margin:12px 8px 0 0">إزالة</button>' : ''}${err ? `<div role="alert" style="color:var(--bad);font-size:12px;margin-top:8px">${err}</div>` : ''}</div>`;
     const d = $('.drop', el);
-    $('input', el).onchange = e => choose(e.target.files[0]);
-    d.ondragover = e => e.preventDefault(); d.ondrop = e => { e.preventDefault(); !disabled && choose(e.dataTransfer.files[0]); };
-    const rm = $('.u-rm', el); if (rm) rm.onclick = () => { file = null; draw(); o.onPick && o.onPick(null); };
+    $('input', el).onchange = e => choose(o.multiple ? e.target.files : e.target.files[0]);
+    d.ondragover = e => e.preventDefault();
+    d.ondrop = e => { e.preventDefault(); if (!disabled) choose(o.multiple ? e.dataTransfer.files : e.dataTransfer.files[0]); };
+    const rm = $('.u-rm', el); if (rm) rm.onclick = () => { file = null; files = []; draw(); o.onPick && o.onPick(o.multiple ? [] : null); };
   }
   draw();
-  return { get: () => file, disable: d => { disabled = d; draw(); }, clear: () => { file = null; err = ''; draw(); } };
+  return {
+    get: () => o.multiple ? files : file,
+    getFiles: () => files,
+    disable: d => { disabled = d; draw(); },
+    clear: () => { file = null; files = []; err = ''; draw(); },
+  };
 }
 
 // يلغي أي تايمر قديم لو المستخدم غيّر الصفحة

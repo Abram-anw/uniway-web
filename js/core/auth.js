@@ -9,6 +9,8 @@ const Auth = (() => {
   // الحسابات الافتراضية — تُحمَّل مرة واحدة عند أول تشغيل
   const SEED_ACCOUNTS = [
     { code: "DR1001", password: "123456", role: "doctor",  roleLabel: "دكتور",        name: "د. سارة القحطاني", short: "س",  department: "علوم الحاسب", year: null,    status: "active", home: "doctor/dashboard.html",  email: "dr1001@uni.edu.eg" },
+    { code: "DA5001", password: "123456", role: "doctor_admin", roleLabel: "دكتور مسؤول السجلات الأكاديمية", name: "د. محمد الدهش", short: "م", department: "علوم الحاسب", year: null, status: "active", home: "doctor_admin/dashboard.html", email: "da5001@uni.edu.eg" },
+    { code: "CT6001", password: "123456", role: "control", roleLabel: "دكتور الكنترول", name: "د. ياسر الكنترول", short: "ي", department: "الإدارة", year: null, status: "active", home: "control/grades.html", email: "ct6001@uni.edu.eg" },
     { code: "SA2001", password: "123456", role: "affairs", roleLabel: "شئون الطلاب",  name: "سارة العمري",    short: "سا", department: "شئون الطلاب",    year: null,    status: "active", home: "affairs/dashboard.html", email: "sa2001@uni.edu.eg" },
     { code: "AD3001", password: "123456", role: "admin",   roleLabel: "أدمن",          name: "مدير النظام",    short: "أ",  department: null,             year: null,    status: "active", home: "admin/dashboard.html",   email: "admin@uni.edu.eg" },
     { code: "DR1002", password: "123456", role: "doctor",  roleLabel: "دكتور",        name: "د. خالد المطيري", short: "خ",  department: "الرياضيات",       year: null,    status: "active", home: "doctor/dashboard.html",  email: "dr1002@uni.edu.eg" },
@@ -19,6 +21,8 @@ const Auth = (() => {
 
   const ROLE_META = {
     doctor:  { label: "دكتور",       home: "doctor/dashboard.html"  },
+    doctor_admin: { label: "دكتور مسؤول السجلات الأكاديمية", home: "doctor_admin/dashboard.html" },
+    control: { label: "دكتور الكنترول", home: "control/grades.html" },
     affairs: { label: "شئون الطلاب", home: "affairs/dashboard.html" },
     admin:   { label: "أدمن",         home: "admin/dashboard.html"   },
     student: { label: "طالب",         home: "student/dashboard.html" },
@@ -30,6 +34,8 @@ const Auth = (() => {
     { key: "student", label: "طالب"  },
     { key: "affairs", label: "شؤون"  },
     { key: "doctor",  label: "دكتور" },
+    { key: "doctor_admin", label: "مسؤول السجلات الأكاديمية" },
+    { key: "control", label: "دكتور الكنترول" },
     { key: "admin",   label: "أدمن"  },
   ];
 
@@ -61,6 +67,17 @@ const Auth = (() => {
       "lectures.upload": true,
       "chat.use":        true,
     },
+    doctor_admin: {
+      "students.view": true,
+      "students.edit": true,
+      "grades.manage": true,
+      "lectures.upload": true,
+      "chat.use": true,
+    },
+    control: {
+      "students.view": true,
+      "grades.manage": true,
+    },
     admin: {
       "students.view":   true,
       "students.edit":   true,
@@ -85,6 +102,7 @@ const Auth = (() => {
     "military-education.html":   "requests.manage",
     "grade-appeals.html":        "grades.manage",
     "grade-appeal-detail.html":  "grades.manage",
+    "academic-records.html":     "students.edit",
     "grades.html":               "grades.manage",
     "course-detail.html":        "grades.manage",
     "conversations.html":        "chat.use",
@@ -146,7 +164,28 @@ const Auth = (() => {
   function loadUsers() {
     try {
       const raw = localStorage.getItem(USERS_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const stored = JSON.parse(raw);
+        if (Array.isArray(stored)) {
+          let changed = false;
+          SEED_ACCOUNTS.forEach(seed => {
+            const existing = stored.find(user => user.code === seed.code);
+            if (!existing) {
+              stored.push({ ...seed });
+              changed = true;
+            } else if (["DA5001", "CT6001"].includes(seed.code)) {
+              if (existing.role !== seed.role || existing.home !== seed.home || existing.roleLabel !== seed.roleLabel) {
+                existing.role = seed.role;
+                existing.home = seed.home;
+                existing.roleLabel = seed.roleLabel;
+                changed = true;
+              }
+            }
+          });
+          if (changed) saveUsers(stored);
+          return stored;
+        }
+      }
     } catch (_) {}
     // أول تشغيل: احفظ البيانات الأولية
     saveUsers(SEED_ACCOUNTS);
@@ -203,6 +242,8 @@ const Auth = (() => {
       try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (_) {}
       location.href = location.pathname.includes("/admin/") ||
                       location.pathname.includes("/doctor/") ||
+                      location.pathname.includes("/doctor_admin/") ||
+                      location.pathname.includes("/control/") ||
                       location.pathname.includes("/affairs/")
         ? "../index.html" : "index.html";
     },
@@ -442,7 +483,7 @@ const Auth = (() => {
     /** خريطة الصفحات بالصلاحيات المطلوبة — تُستخدم لإخفاء روابط غير المتاحة */
     pagePermission(file, role) {
       if (role && PAGE_PERMISSIONS_DIR[role + "/" + file]) return PAGE_PERMISSIONS_DIR[role + "/" + file];
-      if (role === "doctor" && file === "courses.html") return null;
+      if (["doctor", "doctor_admin", "control"].includes(role) && file === "courses.html") return null;
       return PAGE_PERMISSIONS[file] || null;
     },
   };
