@@ -1362,83 +1362,6 @@ tr.click:hover td {
   font-size: 12px;
 }
 
-/* Chat */
-.chat {
-  display: grid;
-  grid-template-columns: 340px 1fr;
-  gap: 12px;
-  min-width: 0;
-  height: calc(100vh - 170px);
-  min-height: 480px;
-}
-
-.chat > .card {
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  overflow: hidden;
-}
-
-.chat .scroll {
-  flex: 1;
-  padding: 14px;
-  overflow: auto;
-}
-
-.th {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--line);
-  cursor: pointer;
-}
-
-.th:hover,
-.th.on {
-  background: var(--blue-l);
-}
-
-.bub {
-  max-width: 70%;
-  margin-bottom: 10px;
-  padding: 9px 13px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: #fff;
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.bub.me {
-  margin-inline-start: auto;
-  border-color: var(--blue);
-  border-end-start-radius: 4px;
-  background: var(--blue);
-  color: #fff;
-}
-
-.bub small {
-  display: block;
-  margin-top: 2px;
-  opacity: 0.6;
-  font-size: 10px;
-}
-
-.compose {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  border-top: 1px solid var(--line);
-}
-
-.compose .input {
-  flex: 1 1 auto;
-  width: auto;
-  min-width: 0;
-}
-
 .quick-actions-section {
   margin-bottom: 16px;
 }
@@ -1627,14 +1550,6 @@ tr.click:hover td {
     grid-template-columns: 1fr 1fr;
   }
 
-  .chat {
-    grid-template-columns: 1fr;
-  }
-
-  .chat .hide-m {
-    display: none;
-  }
-
   .page {
     padding: 16px;
   }
@@ -1739,15 +1654,6 @@ tr.click:hover td {
   .li > .btn {
     width: 100%;
     justify-content: center;
-  }
-
-  .chat {
-    height: calc(100vh - 132px);
-    min-height: 420px;
-  }
-
-  .bub {
-    max-width: 88%;
   }
 
   .notification-panel {

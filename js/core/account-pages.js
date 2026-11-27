@@ -52,7 +52,6 @@ function accountProfilePage(view) {
   const user = Auth.current();
   const role = Auth.getRoleMeta()[user.role]?.label || user.role;
   const dashboardHref = `dashboard.html`;
-  const messagesHref = user.role === "affairs" ? "conversations.html" : "dashboard.html";
 
   view.innerHTML = `
     <section class="account-profile">
@@ -72,7 +71,7 @@ function accountProfilePage(view) {
       <div class="account-profile-actions">
         <a class="btn primary" href="${dashboardHref}">العودة للوحة التحكم</a>
         <a class="btn outline" href="notifications.html">الإشعارات</a>
-        <a class="btn ghost" href="${messagesHref}">${user.role === "affairs" ? "محادثات الطلاب" : "إعدادات النظام"}</a>
+        <a class="btn ghost" href="dashboard.html">إعدادات النظام</a>
         <button class="btn danger" id="account-logout" type="button">تسجيل الخروج</button>
       </div>
     </section>`;

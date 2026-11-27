@@ -65,7 +65,7 @@ function freshReload() {
 
 const PERM_KEYS = [
   "students.view", "students.edit", "grades.manage", "lectures.upload",
-  "requests.manage", "chat.use", "users.manage", "settings.manage",
+  "requests.manage", "users.manage", "settings.manage",
 ];
 
 // ── التنفيذ ─────────────────────────────────────────────────────────────
@@ -73,7 +73,7 @@ section("القيم الافتراضية لمصفوفة الصلاحيات");
 loadSources();
 {
   const m = Auth.getPermissions();
-  ok(PERM_KEYS.every(k => m.admin[k] === true), "الأدمن يملك كل الصلاحيات الثمانية افتراضيًا");
+  ok(PERM_KEYS.every(k => m.admin[k] === true), "الأدمن يملك كل الصلاحيات السبع افتراضيًا");
   ok(PERM_KEYS.every(k => m.student[k] === false), "الطالب لا يملك أي صلاحية افتراضيًا");
   ok(m.affairs["students.view"] === true && m.affairs["requests.manage"] === true, "شؤون: عرض/تعديل الطلاب وإدارة الطلبات مفعّلة");
   ok(m.affairs["users.manage"] === false && m.affairs["settings.manage"] === false, "شؤون: إدارة المستخدمين والإعدادات معطّلة");

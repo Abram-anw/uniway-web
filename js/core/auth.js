@@ -39,14 +39,13 @@ const Auth = (() => {
     { key: "admin",   label: "أدمن"  },
   ];
 
-  // أعمدة المصفوفة — ثماني صلاحيات
+  // أعمدة المصفوفة — سبع صلاحيات
   const PERMISSIONS = [
     { key: "students.view",   label: "عرض الطلاب",            desc: "الوصول لشاشات عرض بيانات الطلاب ومستنداتهم" },
     { key: "students.edit",   label: "تعديل الطلاب",           desc: "تعديل بيانات الطلاب الأكاديمية" },
     { key: "grades.manage",   label: "إدارة الدرجات",          desc: "رفع وتعديل الدرجات ومراجعة التظلمات" },
     { key: "lectures.upload", label: "رفع المحاضرات",          desc: "رفع محاضرات ومستندات المقررات" },
     { key: "requests.manage", label: "إدارة الطلبات والالتحاق", desc: "مراجعة طلبات الطلاب وطلبات الالتحاق والتربية العسكرية" },
-    { key: "chat.use",        label: "الشات",                  desc: "فتح محادثات الطلاب والرد عليها" },
     { key: "users.manage",    label: "إدارة المستخدمين",       desc: "إضافة المستخدمين وتعديلهم وإدارة أدوارهم" },
     { key: "settings.manage", label: "إعدادات النظام",         desc: "تعديل إعدادات التطبيق العامة" },
   ];
@@ -59,20 +58,17 @@ const Auth = (() => {
       "students.edit":   true,
       "grades.manage":   true,
       "requests.manage": true,
-      "chat.use":        true,
     },
     doctor: {
       "students.view":   true,
       "grades.manage":   true,
       "lectures.upload": true,
-      "chat.use":        true,
     },
     doctor_admin: {
       "students.view": true,
       "students.edit": true,
       "grades.manage": true,
       "lectures.upload": true,
-      "chat.use": true,
     },
     control: {
       "students.view": true,
@@ -84,7 +80,6 @@ const Auth = (() => {
       "grades.manage":   true,
       "lectures.upload": true,
       "requests.manage": true,
-      "chat.use":        true,
       "users.manage":    true,
       "settings.manage": true,
     },
@@ -105,8 +100,6 @@ const Auth = (() => {
     "academic-records.html":     "students.edit",
     "grades.html":               "grades.manage",
     "course-detail.html":        "grades.manage",
-    "conversations.html":        "chat.use",
-    "chats.html":                "chat.use",
     "lectures.html":             "lectures.upload",
     // شاشات إدارة الكيانات (الأدمن)
     "courses.html":              "settings.manage",

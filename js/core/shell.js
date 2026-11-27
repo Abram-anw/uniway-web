@@ -4,11 +4,6 @@ function accountNotificationSeeds(user) {
     (typeof courses === "undefined" ? [] : courses).filter(course => !course.graded).forEach(course => {
       items.push({ id: `grade-${course.code}`, title: "مقرر يحتاج رفع الدرجات", body: `${course.name} (${course.code}) لم تُرفع درجاته بعد.`, href: "grades.html" });
     });
-    (typeof threads === "undefined" ? [] : threads).filter(thread => thread.unread).forEach(thread => {
-      const student = typeof students === "undefined" ? null : students.find(item => item.id === thread.sid);
-      if (!student) return;
-      items.push({ id: `chat-${thread.sid}`, title: `رسالة جديدة من ${student.name}`, body: thread.msgs[thread.msgs.length - 1]?.text || "لديك رسالة جديدة.", href: `chats.html?id=${encodeURIComponent(thread.sid)}` });
-    });
     (typeof announcements === "undefined" ? [] : announcements)
       .filter(item => !item.course || courses.some(course => course.code === item.course))
       .forEach(item => items.push({ id: `announcement-${item.id}`, title: item.title, body: item.body, href: "courses.html" }));
@@ -19,11 +14,6 @@ function accountNotificationSeeds(user) {
     (typeof gradeAppeals === "undefined" ? [] : gradeAppeals)
       .filter(appeal => ["new", "under_review", "missing_info", "needs_info"].includes(appeal.status))
       .forEach(appeal => items.push({ id: `appeal-${appeal.id}`, title: "تظلم درجات قيد المتابعة", body: `${appeal.courseName || appeal.course || "تظلم درجات"} — ${appeal.studentName || ""}`, href: `grade-appeal-detail.html?id=${encodeURIComponent(appeal.id)}` }));
-    (typeof threads === "undefined" ? [] : threads).filter(thread => thread.unread).forEach(thread => {
-      const student = typeof students === "undefined" ? null : students.find(item => item.id === thread.sid);
-      if (!student) return;
-      items.push({ id: `chat-${thread.sid}`, title: `رسالة جديدة من ${student.name}`, body: thread.msgs[thread.msgs.length - 1]?.text || "لديك رسالة جديدة.", href: `conversations.html?id=${encodeURIComponent(thread.sid)}` });
-    });
   } else if (user.role === "admin") {
     (typeof announcements === "undefined" ? [] : announcements).forEach(item => {
       items.push({ id: `announcement-${item.id}`, title: item.title, body: `إعلان جامعي جديد: ${item.body}`, href: "announcements.html" });
@@ -77,7 +67,6 @@ function accountNotificationSeeds(user) {
         <a href="courses.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>مقرراتي</a>
         <a href="grades.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>رفع الدرجات</a>
         <a href="lectures.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>رفع محاضرة</a>
-        <a href="chats.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>المحادثات</a>
         <a href="academic-records.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z M13 2v7h7"/></svg>السجلات الأكاديمية</a>`;
       nav.querySelectorAll("a").forEach(link => {
         if (location.pathname.endsWith("/" + link.getAttribute("href"))) link.classList.add("on");

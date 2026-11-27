@@ -161,35 +161,6 @@ const announcements = [
     creatorName: "سارة العمري",
   },
 ];
-const pick = (code, n) => students.filter((s) => s.course === code)[n].id;
-const threads = [
-  {
-    sid: pick("COMP301", 0),
-    unread: 2,
-    msgs: [
-      { from: "s", text: "دكتورة، ممكن توضحي نقطة الـ 3NF؟", at: "09:10 ص" },
-      { from: "s", text: "ومحتاج مثال تاني على التطبيع.", at: "09:12 ص" },
-    ],
-  },
-  {
-    sid: pick("COMP401", 2),
-    unread: 1,
-    msgs: [{ from: "s", text: "هل المشروع فردي ولا جماعي؟", at: "أمس" }],
-  },
-  {
-    sid: pick("COMP204", 4),
-    unread: 0,
-    msgs: [
-      { from: "s", text: "شكرًا على الشرح يا دكتورة.", at: "أمس" },
-      { from: "d", text: "على الرحب والسعة.", at: "أمس" },
-    ],
-  },
-  {
-    sid: pick("COMP401", 6),
-    unread: 0,
-    msgs: [{ from: "d", text: "تم رصد درجتك.", at: "الأحد" }],
-  },
-];
 
 const affairsSections = [
   { key: "admission", label: "طلبات الالتحاق", icon: "users", count: 24 },
@@ -346,28 +317,6 @@ const requestDocumentsById = {
   ],
 };
 
-const requestMessagesById = {
-  "SR-1048": [
-    { from: "student", sender: "ريم السعدي", text: "أرفقت نسخة من الشهادة الثانوية المحدثة اليوم.", time: "2026-10-12 09:30" },
-    { from: "employee", sender: "موظف شؤون الطلاب", text: "تم استلام الملف، سيتم مراجعة المستندات خلال اليوم.", time: "2026-10-12 12:45" },
-  ],
-  "SR-1042": [
-    { from: "student", sender: "أحمد العتيبي", text: "أحتاج مراجعة جديدة للمنحة بعد تغير الحالة الاجتماعية.", time: "2026-10-10 16:10" },
-  ],
-  "SR-1037": [
-    { from: "student", sender: "سارة القحطاني", text: "شكرًا، أحتاج تعديل الخطة الدراسية في أقرب وقت.", time: "2026-10-08 12:00" },
-  ],
-  "SR-1033": [
-    { from: "student", sender: "خالد المطيري", text: "أرغب في تسجيل مقرر الذكاء الاصطناعي في الفصل الحالي.", time: "2026-10-07 14:35" },
-  ],
-  "SR-1029": [
-    { from: "employee", sender: "موظف شؤون الطلاب", text: "تمت مراجعة السجل الأكاديمي والإجابة على استفسارك.", time: "2026-10-05 17:45" },
-  ],
-  "SR-1024": [
-    { from: "student", sender: "محمود الشمري", text: "أرغب في تغيير غرفتي بسبب الازدحام.", time: "2026-10-02 16:25" },
-  ],
-};
-
 const requestNotesById = {
   "SR-1048": [
     { author: "موظف شؤون الطلاب", text: "تم فحص الوثائق الأولية، المطلوب مراجعة نسخة الشهادة للتأكد من تاريخ الإصدار.", time: "2026-10-12 12:30" },
@@ -391,7 +340,6 @@ const requestNotesById = {
 
 studentRequests.forEach((request) => {
   request.documents = requestDocumentsById[request.id] || [];
-  request.messages = requestMessagesById[request.id] || [];
   request.notes = requestNotesById[request.id] || [];
 });
 
@@ -499,10 +447,6 @@ const gradeAppeals = [
     submittedAt: "2026-10-07 12:00",
     attachments: [{ name: "photo-of-answer-sheet.jpg", type: "image" }],
     history: [{ title: "تم تقديم الاستئناف", time: "2026-10-07 12:00", actor: "الطالب" }],
-    messages: [
-      { from: "student", sender: "نور السعدي", text: "أرغب في مراجعة النتيجة النهائية للفيزياء.", time: "2026-10-07 12:05" },
-      { from: "employee", sender: "موظف شؤون الطلاب", text: "تمت مراجعة الطلب وسيتم الرد خلال 48 ساعة.", time: "2026-10-07 15:20" },
-    ],
   },
   {
     id: "GA-3002",
@@ -516,7 +460,6 @@ const gradeAppeals = [
     submittedAt: "2026-10-05 09:40",
     attachments: [{ name: "math-appeal.pdf", type: "pdf" }],
     history: [{ title: "تم قبول الاستئناف", time: "2026-10-06 14:11", actor: "موظف شؤون الطلاب" }],
-    messages: [],
   },
   {
     id: "GA-3003",
@@ -530,7 +473,6 @@ const gradeAppeals = [
     submittedAt: "2026-10-09 18:25",
     attachments: [{ name: "lab-evaluation.pdf", type: "pdf" }],
     history: [{ title: "تم طلب معلومات إضافية", time: "2026-10-09 19:00", actor: "موظف شؤون الطلاب" }],
-    messages: [],
   },
   {
     id: "GA-3004",
@@ -544,7 +486,6 @@ const gradeAppeals = [
     submittedAt: "2026-10-08 08:30",
     attachments: [{ name: "speaking-rubric.pdf", type: "pdf" }],
     history: [{ title: "تم رفض الاستئناف", time: "2026-10-08 09:50", actor: "موظف شؤون الطلاب" }],
-    messages: [],
   },
 ];
 

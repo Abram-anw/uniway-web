@@ -31,7 +31,6 @@ function dashboard(view) {
     courses: courses.length,
     students: courses.reduce((sum, course) => sum + course.students, 0),
     grades: courses.filter((course) => !course.graded).length,
-    messages: unreadTotal(),
   };
   Object.entries(statValues).forEach(([key, value]) => {
     $(`[data-stat="${key}"]`, view).textContent = value;
@@ -126,7 +125,6 @@ function courseDetail(view, [code]) {
     { id: "programs", label: "توزيع الشعب" },
     { id: "lectures", label: "المحاضرات" },
     { id: "ann", label: "إعلانات المقرر" },
-    { id: "chat", label: "الشات" },
   ];
   function show() {
     tabs($("#tabs", view), tabList, tab, (t) => {
@@ -160,35 +158,21 @@ function courseDetail(view, [code]) {
              </div>
              <span class="badge blue">${programStudents.length} طالب</span>
            </div>
-           <div class="course-students-hint">اضغط على الطالب لفتح المحادثة معه</div>
            ${
              programStudents.length
                ? `<div class="course-students-list">${programStudents
                    .map(
                      (student) =>
-                       `<button type="button" class="course-student-row" data-student-id="${esc(student.id)}">
+                        `<div class="course-student-row">
                           <span class="avatar">${esc(student.name.charAt(0))}</span>
                           <span class="course-student-main"><b>${esc(student.name)}</b><small>${esc(student.id)}</small></span>
                           <span class="course-student-email" dir="ltr">${esc(student.email)}</span>
-                          <span class="course-student-action">${icon("chat", 16)} فتح الشات</span>
-                        </button>`,
+                         </div>`,
                    )
                    .join("")}</div>`
                : empty("لا يوجد طلاب في هذا القسم", "سيظهر الطلبة المسجلون في المادة هنا.")
            }
-           </div>`,
-          (dialog, close) => {
-            dialog.querySelectorAll("[data-student-id]").forEach((studentRow) => {
-              studentRow.onclick = () => {
-                const studentId = studentRow.dataset.studentId;
-                if (!threads.some((thread) => thread.sid === studentId)) {
-                  threads.push({ sid: studentId, unread: 0, msgs: [] });
-                }
-                close();
-                window.location.href = `chats.html?id=${encodeURIComponent(studentId)}`;
-              };
-            });
-          },
+            </div>`
         );
       };
       pane.querySelectorAll("[data-program]").forEach((card) => {
@@ -233,18 +217,6 @@ function courseDetail(view, [code]) {
             };
           },
         );
-    } else {
-      const t = threads.filter(
-        (x) => (studentById(x.sid) || {}).course === code,
-      );
-      pane.innerHTML = t.length
-        ? `<div class="list">${t
-            .map((x) => {
-              const s = studentById(x.sid);
-              return `<a href="chats.html?id=${x.sid}" class="li"><span class="avatar">${s.name[0]}</span><div class="grow"><b>${s.name}</b><small>${esc(x.msgs[x.msgs.length - 1].text)}</small></div>${x.unread ? badge(x.unread, "red") : ""}</a>`;
-            })
-            .join("")}</div>`
-        : empty("لا توجد محادثات في هذا المقرر", "", "chat");
     }
   }
   show();
@@ -633,11 +605,6 @@ function doctorProfilePage(view) {
           <span class="profile-action-copy"><b>إعدادات الإشعارات</b><small>تخصيص التنبيهات</small></span>
           <span class="profile-chevron">${icon("chevD")}</span>
         </button>
-        <a class="profile-action" href="chats.html">
-          <span class="profile-action-icon green">${icon("chat")}</span>
-          <span class="profile-action-copy"><b>التواصل مع الدعم</b><small>الإبلاغ عن مشكلة أو طلب مساعدة</small></span>
-          <span class="profile-chevron">${icon("chevD")}</span>
-        </a>
         <button class="profile-action" id="profile-rating">
           <span class="profile-action-icon purple">${icon("star")}</span>
           <span class="profile-action-copy"><b>تقييم التطبيق</b><small>شاركنا رأيك</small></span>
@@ -984,88 +951,3 @@ function academicRecordsPage(view) {
   render();
 }
 
-// ---------- SCRUM-97: مركز محادثات الدكتور ----------
-function chatsPage(view, [id]) {
-  let filter = "";
-  const stu = studentById(id);
-  let cur = threads.find((t) => t.sid === id);
-  if (!cur && stu) {
-    cur = { sid: stu.id, unread: 0, msgs: [] };
-    threads.push(cur);
-  }
-  if (cur) cur.unread = 0;
-  view.innerHTML =
-    pageHead("مركز المحادثات", `${unreadTotal()} رسائل غير مقروءة`) +
-    `<div class="chat"><div class="card ${id ? "hide-m" : ""}"><div style="padding:12px;border-bottom:1px solid var(--line)"><select class="select" id="flt" aria-label="فلتر المقرر"><option value="">كل المقررات</option>${courses.map((c) => `<option value="${c.code}">${c.code} – ${c.name}</option>`).join("")}</select></div><div class="scroll" id="list" style="padding:0"></div></div><div class="card ${id ? "" : "hide-m"}" id="pane"></div></div>`;
-  function list() {
-    const l = threads.filter(
-      (t) => !filter || studentById(t.sid).course === filter,
-    );
-    $("#list", view).innerHTML = l.length
-      ? l
-          .map((t) => {
-            const s = studentById(t.sid),
-              last = t.msgs[t.msgs.length - 1];
-            return `<a href="chats.html?id=${t.sid}" class="th ${t.sid === id ? "on" : ""}"><span class="avatar">${s.name[0]}</span><div style="flex:1;min-width:0"><b style="font-size:13px">${s.name}</b><div style="font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(last.text || last.file)}</div></div>${t.unread ? badge(t.unread, "red") : ""}</a>`;
-          })
-          .join("")
-      : empty("لا توجد محادثات", "", "chat");
-  }
-  $("#flt", view).onchange = (e) => {
-    filter = e.target.value;
-    list();
-  };
-  list();
-  const pane = $("#pane", view);
-  if (!id) {
-    pane.innerHTML = empty(
-      "اختر محادثة للبدء",
-      "رسائل طلابك تظهر هنا بنفس الشات الموجود في تطبيق الموبايل.",
-      "chat",
-    );
-    return;
-  }
-  if (!cur) {
-    pane.innerHTML = errorBox(
-      "المحادثة غير متاحة",
-      "",
-      '<a class="btn primary" href="chats.html">العودة للمحادثات</a>',
-    );
-    return;
-  }
-  pane.innerHTML = `<div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center"><span class="avatar">${stu.name[0]}</span><div style="flex:1"><b>${stu.name}</b><div style="font-size:12px;color:var(--mut)">${stu.id} · سياق المقرر: ${cname(stu.course)}</div></div><a class="btn ghost menu" href="chats.html">القائمة</a></div>
-    <div class="scroll" id="msgs"></div><div class="compose"><input type="file" hidden id="f"><button class="btn ghost" id="clip" aria-label="إرفاق ملف">${icon("clip")}</button><input class="input" id="txt" type="text" autocomplete="off" aria-label="اكتب ردك" placeholder="اكتب ردك..."><button class="btn primary" id="snd" aria-label="إرسال" disabled>${icon("send")}</button></div>`;
-  const msgs = $("#msgs", pane),
-    txt = $("#txt", pane);
-  const draw = () => {
-    msgs.innerHTML = cur.msgs
-      .map(
-        (m) =>
-          `<div class="bub ${m.from === "d" ? "me" : ""}">${m.file ? `<div>${icon("clip", 13)} ${esc(m.file)}</div>` : ""}${esc(m.text)}<small>${m.at}</small></div>`,
-      )
-      .join("");
-    msgs.scrollTop = msgs.scrollHeight;
-    list();
-  };
-  const send = (file) => {
-    if (!txt.value.trim() && !file) return;
-    cur.msgs.push({ from: "d", text: txt.value.trim(), at: "الآن", file });
-    txt.value = "";
-    $("#snd", pane).disabled = true;
-    draw();
-  };
-  txt.oninput = () => ($("#snd", pane).disabled = !txt.value.trim());
-  txt.onkeydown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      send();
-    }
-  };
-  $("#snd", pane).onclick = () => send();
-  $("#clip", pane).onclick = () => $("#f", pane).click();
-  $("#f", pane).onchange = (e) => {
-    if (e.target.files[0]) send(e.target.files[0].name);
-    e.target.value = "";
-  };
-  draw();
-}

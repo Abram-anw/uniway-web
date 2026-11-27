@@ -315,22 +315,6 @@ const renderGradeAppealDetailPage = (view, [id]) => {
     </div>
     <div class="grid g2" style="margin-top:16px">
       <div class="card">
-        <h3>الدردشة</h3>
-        <div class="scroll" style="height:260px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);margin-bottom:12px">
-          ${appeal.messages.length ? appeal.messages.map((msg) => `
-            <div class="bub ${msg.from === "employee" ? "me" : ""}">
-              <b>${msg.sender}</b>
-              <div>${esc(msg.text)}</div>
-              <small>${msg.time}</small>
-            </div>
-          `).join("") : `<div class="state" style="padding:20px 10px">${empty("لا توجد رسائل", "ابدأ مراسلة الطالب في هذا الاستئناف.")}</div>`}
-        </div>
-        <div class="compose">
-          <input class="input" id="appeal-chat-msg" type="text" autocomplete="off" aria-label="اكتب رسالة للطالب" placeholder="اكتب رسالة للطالب..." />
-          <button class="btn primary" id="send-appeal-msg">إرسال</button>
-        </div>
-      </div>
-      <div class="card">
         <h3>سجل الاستئناف</h3>
         <div class="list">
           ${appeal.history
@@ -383,29 +367,6 @@ const renderGradeAppealDetailPage = (view, [id]) => {
     };
   });
 
-  $('#send-appeal-msg', view).onclick = () => {
-    const value = ($('#appeal-chat-msg', view).value || "").trim();
-    if (!value) return;
-    appeal.messages.push({
-      from: "employee",
-      sender: "موظف شؤون الطلاب",
-      text: value,
-      time: new Date().toLocaleString("ar-EG", { dateStyle: "medium", timeStyle: "short" }),
-    });
-    appeal.history.unshift({
-      title: "تم إرسال رسالة للاستئناف",
-      time: new Date().toLocaleString("ar-EG", { dateStyle: "medium", timeStyle: "short" }),
-      actor: "موظف شؤون الطلاب",
-    });
-    $('#appeal-chat-msg', view).value = "";
-    renderGradeAppealDetailPage(view, [appeal.id]);
-  };
-  $('#appeal-chat-msg', view).onkeydown = (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      $('#send-appeal-msg', view).click();
-    }
-  };
 };
 
 const affairsGradeAppealsPage = (view) => {
@@ -470,8 +431,6 @@ const affairsStudentDetailPage = (view, [studentId]) => {
     return;
   }
 
-  const relatedThreads = threads.filter((thread) => thread.sid === student.id);
-  const unreadTotal = relatedThreads.reduce((sum, thread) => sum + (thread.unread || 0), 0);
   const studentInfo = [
     { label: "اسم الطالب", value: student.name },
     { label: "كود الطالب", value: student.id },
@@ -498,11 +457,6 @@ const affairsStudentDetailPage = (view, [studentId]) => {
   });
   $("[data-student-documents]", view).href =
     `documents.html?studentId=${encodeURIComponent(student.id)}`;
-  $("[data-student-conversations]", view).href =
-    `conversations.html?id=${encodeURIComponent(student.id)}`;
-  $("[data-student-unread]", view).textContent = unreadTotal
-    ? `${unreadTotal} رسالة غير مقروءة`
-    : "لا توجد رسائل غير مقروءة";
 };
 
 const affairsStudentDocumentsPage = (view, _p, query = {}) => {
@@ -559,83 +513,6 @@ const affairsStudentDocumentsPage = (view, _p, query = {}) => {
     },
     empty: empty("لا توجد مستندات", "لا توجد مستندات متوافقة مع البحث أو الفلتر الحالي."),
   });
-};
-
-const affairsStudentConversationsPage = (view, [id]) => {
-  let filter = "";
-  const cur = threads.find((thread) => thread.sid === id);
-  const stu = cur && studentById(cur.sid);
-  if (cur) cur.unread = 0;
-
-  view.innerHTML =
-    pageHead("محادثات الطلاب", `${unreadTotal()} رسائل غير مقروءة`) +
-    `<div class="chat"><div class="card ${id ? "hide-m" : ""}"><div style="padding:12px;border-bottom:1px solid var(--line)"><select class="select" id="flt" aria-label="فلتر الطالب"><option value="">كل الطلاب</option>${students.map((student) => `<option value="${student.id}">${student.name}</option>`).join("")}</select></div><div class="scroll" id="list" style="padding:0"></div></div><div class="card ${id ? "" : "hide-m"}" id="pane"></div></div>`;
-
-  function renderList() {
-    const list = threads.filter((thread) => !filter || thread.sid === filter);
-    $('#list', view).innerHTML = list.length
-      ? list
-          .map((thread) => {
-            const student = studentById(thread.sid);
-            if (!student) return "";
-            const last = thread.msgs[thread.msgs.length - 1];
-            return `<a href="conversations.html?id=${thread.sid}" class="th ${thread.sid === id ? "on" : ""}"><span class="avatar">${student.name[0]}</span><div style="flex:1;min-width:0"><b style="font-size:13px">${student.name}</b><div style="font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(last?.text || last?.file || "لا توجد رسائل")}</div></div>${thread.unread ? badge(thread.unread, "red") : ""}</a>`;
-          })
-          .join("")
-      : empty("لا توجد محادثات", "", "chat");
-  }
-
-  $('#flt', view).onchange = (event) => {
-    filter = event.target.value;
-    renderList();
-  };
-
-  renderList();
-
-  const pane = $('#pane', view);
-  if (!id) {
-    pane.innerHTML = empty("اختر محادثة للبدء", "رسائل الطلاب تظهر هنا بنفس نمط الشات الحالي في التطبيق.", "chat");
-    return;
-  }
-
-  if (!cur || !stu) {
-    pane.innerHTML = errorBox("المحادثة غير متاحة", "", '<a class="btn primary" href="conversations.html">العودة إلى المحادثات</a>');
-    return;
-  }
-
-  pane.innerHTML = `<div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center"><span class="avatar">${stu.name[0]}</span><div style="flex:1"><b>${stu.name}</b><div style="font-size:12px;color:var(--mut)">${stu.id} · البريد: ${esc(stu.email)}</div></div><a class="btn ghost menu" href="conversations.html">القائمة</a></div>
-    <div class="scroll" id="msgs"></div><div class="compose"><input class="input" id="txt" type="text" autocomplete="off" aria-label="اكتب ردك" placeholder="اكتب ردك..."><button class="btn primary" id="snd" aria-label="إرسال">${icon("send")}</button></div>`;
-
-  const msgs = $('#msgs', pane);
-  const txt = $('#txt', pane);
-
-  const draw = () => {
-    msgs.innerHTML = cur.msgs
-      .map((message) => `<div class="bub ${message.from === "d" ? "me" : ""}">${message.file ? `<div>${icon("clip", 13)} ${esc(message.file)}</div>` : ""}${esc(message.text || "")}${message.at ? `<small>${message.at}</small>` : ""}</div>`)
-      .join("");
-    msgs.scrollTop = msgs.scrollHeight;
-    renderList();
-  };
-
-  const send = () => {
-    if (!txt.value.trim()) return;
-    cur.msgs.push({ from: "d", text: txt.value.trim(), at: "الآن" });
-    txt.value = "";
-    draw();
-  };
-
-  txt.oninput = () => {
-    $('#snd', pane).disabled = !txt.value.trim();
-  };
-  txt.onkeydown = (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      send();
-    }
-  };
-  $('#snd', pane).onclick = send;
-  $('#snd', pane).disabled = true;
-  draw();
 };
 
 const splitCsvLine = (line) => {
@@ -1182,20 +1059,6 @@ const affairsRequestDetailPage = (view, [requestId]) => {
           .join("")
       : empty("لا توجد ملاحظات مراجعة", "سيظهر سجل الملاحظات هنا عند إضافة أول ملاحظة.");
 
-    const chatMessages = request.messages.length
-      ? request.messages
-          .map(
-            (msg) => `
-              <div class="bub ${msg.from === "employee" ? "me" : ""}">
-                <b>${msg.sender || (msg.from === "employee" ? "موظف شؤون الطلاب" : "الطالب")}</b>
-                <div>${esc(msg.text)}</div>
-                <small>${msg.time}</small>
-              </div>
-            `,
-          )
-          .join("")
-      : `<div class="state" style="padding:20px 10px">${empty("لا توجد رسائل", "ابدأ المحادثة مع الطالب في هذا الطلب.")}</div>`;
-
     view.innerHTML =
       pageHead(
         request.id,
@@ -1274,14 +1137,6 @@ const affairsRequestDetailPage = (view, [requestId]) => {
           </div>
           <button class="btn primary" id="save-note">إضافة ملاحظة</button>
         </div>
-        <div class="card">
-          <h3>الدردشة</h3>
-          <div class="scroll" style="height:260px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);margin-bottom:12px">${chatMessages}</div>
-          <div class="compose">
-            <input class="input" id="chat-message" type="text" autocomplete="off" aria-label="اكتب رسالة للطالب" placeholder="اكتب رسالة للطالب..." />
-            <button class="btn primary" id="send-message">إرسال</button>
-          </div>
-        </div>
       </div>
       <div class="card" style="margin-top:16px">
         <h3>سجل الإجراءات</h3>
@@ -1325,30 +1180,6 @@ const affairsRequestDetailPage = (view, [requestId]) => {
       render();
     };
 
-    const sendMessage = $("#send-message", view);
-    const chatInput = $("#chat-message", view);
-    sendMessage.onclick = () => {
-      const text = (chatInput.value || "").trim();
-      if (!text) return;
-      request.messages.push({
-        from: "employee",
-        sender: "موظف شؤون الطلاب",
-        text,
-        time: new Date().toLocaleString("ar-EG", {
-          dateStyle: "medium",
-          timeStyle: "short",
-        }),
-      });
-      addTimelineEvent(request, "تمت إضافة رسالة للمراجعة", "موظف شؤون الطلاب");
-      chatInput.value = "";
-      render();
-    };
-    chatInput.onkeydown = (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        sendMessage.click();
-      }
-    };
 
     view.querySelectorAll("[data-doc-preview]").forEach((button) => {
       button.onclick = () => {
